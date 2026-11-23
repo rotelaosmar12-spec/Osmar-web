@@ -51,7 +51,7 @@ CTA = """<div class="cta">
 """
 
 FOOT = """<footer>
-<div class="wrap">Osmar Rotela – Electricidad y Mantenimiento · Málaga · <a href="tel:+34631400753">631 400 753</a> · <a href="/consejos/">Consejos</a></div>
+<div class="wrap">Osmar Rotela – Electricidad y Mantenimiento · Málaga · <a href="tel:+34631400753">631 400 753</a> · <a href="/consejos/">Consejos</a><br><a href="/servicios/cuadros-electricos-malaga/">Cuadros eléctricos</a> · <a href="/servicios/averias-electricas-malaga/">Averías</a> · <a href="/servicios/antenas-tdt-malaga/">Antenas TDT</a> · <a href="/servicios/porteros-automaticos-malaga/">Porteros</a></div>
 </footer>
 </body>
 </html>
@@ -122,10 +122,45 @@ lista += f"""<div class="art-head"><div class="wrap">
 (web / "consejos").mkdir(exist_ok=True)
 (web / "consejos" / "index.html").write_text(lista, encoding="utf-8")
 
+# Páginas de servicios
+servicios = []
+for f in sorted((src / "servicios").glob("*.html")) if (src / "servicios").exists() else []:
+    d, body = meta(f.read_text(encoding="utf-8"))
+    d["body"] = body
+    servicios.append(d)
+for s_ in servicios:
+    url = f"{SITE}/servicios/{s_['slug']}/"
+    ld = '<script type="application/ld+json">' + json.dumps({
+        "@context": "https://schema.org", "@type": "Service",
+        "name": s_["titulo"], "description": s_["resumen"], "serviceType": s_["nombre"],
+        "areaServed": {"@type": "City", "name": "Málaga"}, "url": url,
+        "provider": {"@type": "Electrician", "name": "Osmar Rotela – Electricidad y Mantenimiento",
+                     "telephone": "+34631400753", "url": SITE + "/"}
+    }, ensure_ascii=False) + '</script>'
+    page = HEAD.format(title=html.escape(s_["titulo"]) + " | Osmar Rotela",
+                       desc=html.escape(s_["resumen"]), url=url, ld=ld)
+    otros = " · ".join(f'<a href="/servicios/{o["slug"]}/">{html.escape(o["nombre"])}</a>' for o in servicios if o is not s_)
+    page += f"""<div class="art-head"><div class="wrap narrow">
+<div class="crumbs"><a href="/">Inicio</a> › <a href="/#servicios">Servicios</a></div>
+<h1>{html.escape(s_['titulo'])}</h1>
+<p>{html.escape(s_['resumen'])}</p>
+</div></div>
+<main class="wrap narrow"><article>
+{s_['body']}
+<p class="small">Otros servicios: {otros} · <a href="/consejos/">Consejos</a></p>
+</article>
+{CTA.format(cta_title='¿Te paso precio?')}
+</main>
+""" + FOOT
+    out = web / "servicios" / s_["slug"]
+    out.mkdir(parents=True, exist_ok=True)
+    (out / "index.html").write_text(page, encoding="utf-8")
+
 # sitemap y robots
 latest = articles[0]["fecha"] if articles else ""
 urls = [(f"{SITE}/", latest), (f"{SITE}/consejos/", latest)] + \
-       [(f"{SITE}/consejos/{a['slug']}/", a["fecha"]) for a in articles]
+       [(f"{SITE}/consejos/{a['slug']}/", a["fecha"]) for a in articles] + \
+       [(f"{SITE}/servicios/{x['slug']}/", x["fecha"]) for x in servicios]
 sm = '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
 sm += "".join(f"  <url><loc>{u}</loc><lastmod>{d}</lastmod></url>\n" for u, d in urls)
 sm += "</urlset>\n"
