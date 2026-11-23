@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>El botón T del diferencial: púlsalo una vez al mes | Osmar Rotela, electricista en Málaga</title>
+<meta name="description" content="Diez segundos al mes para saber si tu diferencial te protegería de verdad. Qué hacer si no salta o si no vuelve a subir.">
+<link rel="canonical" href="https://osmar-rotela-electricista.netlify.app/consejos/boton-test-del-diferencial/">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/estilo.css">
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "Article", "headline": "El botón T del diferencial: púlsalo una vez al mes", "description": "Diez segundos al mes para saber si tu diferencial te protegería de verdad. Qué hacer si no salta o si no vuelve a subir.", "datePublished": "2026-11-21", "inLanguage": "es", "mainEntityOfPage": "https://osmar-rotela-electricista.netlify.app/consejos/boton-test-del-diferencial/", "author": {"@type": "Person", "name": "Osmar Rotela"}, "publisher": {"@type": "Organization", "name": "Osmar Rotela – Electricidad y Mantenimiento"}}</script>
+</head>
+<body>
+<header class="top">
+<div class="wrap">
+<a class="brand" href="/"><span class="bolt"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#17365d" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 4 14h7l-1 8 9-12h-7l1-8z"/></svg></span>Osmar Rotela</a>
+<nav aria-label="Secciones">
+<a class="hide-sm" href="/#servicios">Servicios</a>
+<a href="/consejos/">Consejos</a>
+<a href="/#contacto">Contacto</a>
+</nav>
+</div>
+</header>
+<div class="art-head"><div class="wrap narrow">
+<div class="crumbs"><a href="/">Inicio</a> › <a href="/consejos/">Consejos</a></div>
+<h1>El botón T del diferencial: púlsalo una vez al mes</h1>
+<p>Diez segundos al mes para saber si tu diferencial te protegería de verdad. Qué hacer si no salta o si no vuelve a subir.</p>
+</div></div>
+<main class="wrap narrow"><article>
+
+<p>El diferencial es lo que te protege de una descarga. Pero es un mecanismo, y si pasa años sin moverse se puede quedar agarrotado. El problema es que <strong>no te enteras hasta el día que hace falta</strong>. Por eso lleva un botón de prueba, la <strong>T</strong>, y por eso los fabricantes recomiendan pulsarlo una vez al mes.</p>
+
+<div class="sim">
+<h3>Prueba el botón</h3>
+<p class="sub">Pulsa la T amarilla. Luego marca "diferencial en mal estado" y vuelve a probar para ver la diferencia.</p>
+<div class="panel" id="tpanel"></div>
+<label style="display:flex;gap:8px;align-items:center;margin-top:12px;font-size:15px"><input type="checkbox" id="malo"> Diferencial en mal estado</label>
+<div class="msg" id="tmsg" role="status" aria-live="polite"></div>
+</div>
+
+<h2>Cómo se hace</h2>
+<ol>
+<li>Avisa en casa de que se va a ir la luz un momento. Si tienes el ordenador encendido, guarda lo que estés haciendo.</li>
+<li>Pulsa el botón <strong>T</strong> del diferencial.</li>
+<li>La palanca tiene que <strong>bajar al instante</strong>.</li>
+<li>Súbela otra vez. Listo.</li>
+</ol>
+<p>Si tienes más de un diferencial (en casas grandes o reformadas es normal), pruébalos todos.</p>
+
+<h2>Si algo no sale bien</h2>
+<ul>
+<li><strong>Pulsas T y no salta:</strong> ese diferencial no te está protegiendo. No es para dejarlo así: hay que revisarlo y seguramente cambiarlo.</li>
+<li><strong>Salta, pero luego no se queda arriba:</strong> hay una fuga en algún circuito. Mira <a href="/consejos/me-salta-el-diferencial/">cómo encontrar el circuito que falla</a>.</li>
+</ul>
+
+<div class="nota"><strong>Ojo:</strong> el botón T solo comprueba que el mecanismo se mueve. No dice si salta con la corriente correcta ni lo bastante rápido. Eso lo mido yo con el comprobador multifunción: la corriente a la que dispara y el tiempo en milisegundos. Es una de las medidas que te dejo por escrito cuando reviso una instalación.</div>
+
+<script>
+(function(){
+  var up=true,p=document.getElementById('tpanel'),m=document.getElementById('tmsg'),malo=document.getElementById('malo');
+  function say(t,k){m.textContent=t;m.className='msg'+(k?' '+k:'')}
+  function draw(){
+    p.innerHTML='';
+    var b=document.createElement('div');b.className='brk id'+(up?' up':'');b.style.cursor='default';
+    b.innerHTML='<span class="slot"></span><span class="lev"></span><span class="st" style="text-align:left;padding-left:10px">'+(up?'ON':'OFF')+'</span><span class="lbl">Diferencial</span>';
+    var lev=document.createElement('button');lev.type='button';lev.className='small';lev.textContent=up?'Bajar':'Subir';
+    lev.style.cssText='position:absolute;left:4px;right:4px;bottom:-44px;padding:4px';
+    lev.onclick=function(){up=!up;say(up?'Diferencial subido. Ya hay luz.':'Diferencial bajado.','');draw();};
+    var t=document.createElement('button');t.type='button';t.className='tbtn';t.textContent='T';t.setAttribute('aria-label','Botón de prueba T');
+    t.onclick=function(){
+      if(!up){say('Primero sube el diferencial.','');return;}
+      if(malo.checked){b.classList.add('shake');say('Has pulsado T y no ha saltado. Este diferencial no te protegería: hay que revisarlo y seguramente cambiarlo.','bad');}
+      else{up=false;say('Bien: ha saltado al momento. El mecanismo funciona. Ahora súbelo otra vez.','good');draw();}
+    };
+    b.appendChild(t);b.appendChild(lev);p.appendChild(b);
+    p.style.paddingBottom='56px';
+  }
+  malo.onchange=function(){up=true;say(malo.checked?'Ahora el diferencial está agarrotado. Pulsa T a ver qué pasa.':'Diferencial en buen estado. Pulsa T.','');draw();};
+  draw();say('Pulsa la T amarilla.','');
+})();
+</script>
+
+</article>
+<div class="cta">
+<h2>¿Tu diferencial no ha saltado al pulsar T?</h2>
+<p>Trabajo en Málaga capital por las tardes y los sábados. Mándame una foto por WhatsApp y te digo qué puede ser.</p>
+<div class="btns">
+<a class="btn btn-wa" href="https://wa.me/34631400753">Escríbeme por WhatsApp</a>
+<a class="btn btn-tel" href="tel:+34631400753">Llamar · 631 400 753</a>
+</div>
+</div>
+
+</main>
+<footer>
+<div class="wrap">Osmar Rotela – Electricidad y Mantenimiento · Málaga · <a href="tel:+34631400753">631 400 753</a> · <a href="/consejos/">Consejos</a></div>
+</footer>
+</body>
+</html>

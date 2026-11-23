@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://osmar-rotela-electricista.netlify.app/sitemap.xml

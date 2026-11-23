@@ -1,0 +1,4 @@
+# La web que se publica está en la carpeta "web".
+# Los textos de los consejos están en "src/consejos" y se montan con: python3 src/build.py src web
+[build]
+  publish = "web"

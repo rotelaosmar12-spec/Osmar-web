@@ -1,0 +1,57 @@
+<!--
+slug: que-es-cada-palanca-del-cuadro
+titulo: ¿Qué es cada palanca del cuadro eléctrico?
+resumen: General, diferencial y magnetotérmicos: para qué sirve cada uno y qué significa cuando salta. Explicado sin tecnicismos.
+etiqueta: Cuadro eléctrico
+fecha: 2026-11-22
+cta: ¿Tu cuadro no tiene nombres o es muy antiguo?
+-->
+<p>Abres el cuadro y ves una fila de palancas sin nombre. Cuando se va la luz, saber cuál ha bajado te dice mucho de lo que está pasando. En casi todas las viviendas vas a encontrar tres tipos.</p>
+
+<div class="sim">
+<h3>Toca cada palanca para ver qué hace</h3>
+<div class="tabs" id="tabs"></div>
+<div class="msg" id="pinfo" role="status" aria-live="polite"></div>
+</div>
+
+<h2>1. El interruptor general (IGA)</h2>
+<p>Suele ser el primero, el más grande. Corta toda la casa a la vez. Es el que bajas si vas a cambiar una lámpara y quieres ir sobre seguro. Si salta solo, normalmente es porque hay un consumo muy alto o un fallo gordo.</p>
+
+<h2>2. El diferencial</h2>
+<p>Se reconoce por el <strong>botón T</strong> (de Test). Es el que te protege a ti: si se escapa corriente por un aparato estropeado, por humedad o por una persona que toca algo con tensión, corta en milésimas de segundo. Si salta, hay una fuga en algún sitio. Te explico cómo encontrarla en <a href="/consejos/me-salta-el-diferencial/">este otro consejo</a>.</p>
+
+<h2>3. Los magnetotérmicos (los "automáticos")</h2>
+<p>Hay uno por circuito: alumbrado, enchufes, cocina y horno, lavadora y termo, baño... Protegen los cables. Saltan por dos motivos:</p>
+<ul>
+<li><strong>Sobrecarga:</strong> demasiados aparatos a la vez en ese circuito (horno, lavadora y aire acondicionado al mismo tiempo, por ejemplo).</li>
+<li><strong>Cortocircuito:</strong> un cable o un aparato estropeado. En este caso salta al momento, nada más subirlo.</li>
+</ul>
+
+<h2>Tabla rápida</h2>
+<table>
+<tr><th>¿Qué ha bajado?</th><th>Qué significa</th><th>Qué puedes hacer</th></tr>
+<tr><td>Un magnetotérmico</td><td>Sobrecarga o cortocircuito en ese circuito</td><td>Apaga algún aparato y súbelo. Si salta al instante, desenchufa todo lo de ese circuito y vuelve a probar.</td></tr>
+<tr><td>El diferencial</td><td>Fuga de corriente</td><td>Sigue los pasos de <a href="/consejos/me-salta-el-diferencial/">este consejo</a>.</td></tr>
+<tr><td>Todo está arriba y no hay luz</td><td>Puede ser el contador (te has pasado de la potencia contratada) o un corte de la compañía</td><td>Apaga los aparatos grandes y espera un poco. Pregunta a un vecino si él tiene luz. Si te pasa a menudo, puede que la potencia contratada se te quede corta.</td></tr>
+</table>
+
+<div class="aviso"><b>Nunca</b> cambies un automático por otro más grande "para que no salte". El automático va a juego con el grosor del cable: si pones uno más grande, el cable se puede calentar sin que nada lo corte.</div>
+
+<div class="nota"><strong>Un consejo que doy siempre:</strong> pon nombre a cada palanca. El día que se vaya la luz lo vas a agradecer. Si tu cuadro no tiene nombres, cuando vaya a revisarlo te lo dejo rotulado.</div>
+
+<script>
+(function(){
+  var P=[
+    ['General (IGA)','Corta toda la casa. Lo bajas para trabajar sin tensión. Si salta solo: consumo muy alto o un fallo gordo.'],
+    ['Diferencial','Tiene el botón T. Te protege a ti de descargas: si salta, se está escapando corriente por algún sitio.'],
+    ['Magnetotérmico','Uno por circuito. Protege los cables. Si salta: demasiados aparatos a la vez o un cortocircuito.']
+  ];
+  var t=document.getElementById('tabs'),info=document.getElementById('pinfo');
+  P.forEach(function(p,i){
+    var b=document.createElement('button');b.type='button';b.className='small';b.textContent=p[0];
+    b.onclick=function(){[].forEach.call(t.children,function(x){x.setAttribute('aria-pressed','false')});b.setAttribute('aria-pressed','true');info.textContent=p[1];};
+    t.appendChild(b);
+  });
+  t.children[1].click();
+})();
+</script>
