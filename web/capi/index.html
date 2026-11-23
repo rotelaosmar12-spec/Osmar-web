@@ -1,0 +1,842 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex,nofollow">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ajedrez con Capi</title>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#fff7ec; --ink:#3b2a4a; --soft:#7a6a88; --card:#ffffff;
+  --pink:#ff7aa8; --purple:#8b5cf6; --green:#22c55e; --orange:#fb923c; --yellow:#facc15; --red:#ef4444;
+  --light:#fdf0da; --dark:#d9926a;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:"Baloo 2",system-ui,sans-serif}
+body{min-height:100vh;background:radial-gradient(circle at 10% 0%,#ffe1ee 0,transparent 40%),radial-gradient(circle at 100% 30%,#e6dcff 0,transparent 45%),var(--bg)}
+.wrap{max-width:520px;margin:0 auto;padding:14px 12px 40px}
+h1{font-size:30px;line-height:1.1;margin:6px 0 4px;text-align:center}
+h1 span{color:var(--purple)}
+.sub{text-align:center;color:var(--soft);margin:0 0 14px;font-size:17px}
+.hidden{display:none!important}
+
+/* Lola */
+.coach{display:flex;gap:10px;align-items:flex-start;margin:8px 0 12px}
+.owl{width:76px;flex:0 0 auto;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;touch-action:manipulation;animation:bob 2.4s ease-in-out infinite;filter:drop-shadow(0 3px 2px rgba(0,0,0,.12))}
+.capi{width:76px;height:auto;display:block}
+.capi .eyes{transform-box:fill-box;transform-origin:center;animation:blink 4s infinite}
+@keyframes blink{0%,94%,100%{transform:scaleY(1)}96%{transform:scaleY(.1)}}
+.capi .mouth{transform-box:fill-box;transform-origin:center}
+.talking .capi .mouth{animation:talk .22s ease-in-out infinite alternate}
+@keyframes talk{from{transform:scaleY(1)}to{transform:scaleY(2.6)}}
+.owl.happy{animation:jump .6s ease 2}
+.owl.worry{animation:shake .5s ease 1}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+@keyframes jump{0%,100%{transform:translateY(0) scale(1)}40%{transform:translateY(-16px) scale(1.12)}}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px) rotate(-6deg)}75%{transform:translateX(6px) rotate(6deg)}}
+.bubble{position:relative;flex:1;background:var(--card);border-radius:18px;padding:10px 14px;font-size:26px;font-weight:700;display:flex;align-items:center;line-height:1.3;box-shadow:0 4px 0 #ecdcf4,0 6px 18px rgba(80,40,120,.08);border:2px solid #efe3f7;min-height:64px}
+.bubble:before{content:"";position:absolute;left:-10px;top:20px;border:10px solid transparent;border-right-color:#efe3f7;border-left:0}
+.bubble.pop{animation:pop .35s ease}
+@keyframes pop{0%{transform:scale(.94);opacity:.4}100%{transform:scale(1);opacity:1}}
+.bubble .op{font-size:15px;color:var(--soft);background:#f6f0fb;border-radius:10px;padding:4px 8px;margin-bottom:6px}
+.bubble .good{color:#15803d;font-weight:700}
+.bubble .warn{color:#c2410c;font-weight:700}
+.bubble b{color:var(--purple)}
+.bubble .btnrow{margin-top:8px}
+
+/* menú */
+.rules{background:#fff;border-radius:18px;padding:10px 14px;border:2px dashed #f3c6d8;margin-bottom:14px}
+.rules h3{margin:0 0 4px;font-size:19px}
+.rules ol{margin:0;padding-left:22px;font-size:17px;line-height:1.35}
+.card{display:flex;align-items:center;gap:12px;background:var(--card);border-radius:18px;padding:12px 14px;margin:10px 0;box-shadow:0 4px 0 #ecdcf4;border:2px solid #efe3f7;cursor:pointer;transition:transform .12s}
+.card:active{transform:scale(.98)}
+.card .ic{font-size:34px;width:48px;height:48px;display:grid;place-items:center;border-radius:14px;flex:0 0 auto}
+.card .tx{flex:1}
+.card .tt{font-weight:800;font-size:18px;line-height:1.15}
+.card .ds{color:var(--soft);font-size:15px;line-height:1.2}
+.card .st{font-size:16px;letter-spacing:1px;white-space:nowrap}
+.tag{display:inline-block;font-size:12px;font-weight:700;padding:1px 8px;border-radius:99px;margin-left:4px;vertical-align:middle}
+.tag.w{background:#fff;border:1.5px solid #bbb}
+.tag.b{background:#3b2a4a;color:#fff}
+.section{font-weight:800;font-size:20px;margin:18px 0 2px}
+.playbox{background:linear-gradient(135deg,#fff,#f5efff);border-radius:18px;padding:12px 14px;border:2px solid #e4d6fb;box-shadow:0 4px 0 #e4d6fb}
+.playbox p{margin:0 0 8px;font-size:16px;color:var(--soft)}
+
+.btn{font-family:inherit;font-weight:800;font-size:17px;border:0;border-radius:14px;padding:10px 14px;cursor:pointer;color:#fff;background:var(--purple);box-shadow:0 4px 0 #5b34b8;transition:transform .1s}
+.btn:active{transform:translateY(3px);box-shadow:0 1px 0 #5b34b8}
+.btn.pink{background:var(--pink);box-shadow:0 4px 0 #d64c80}
+.btn.green{background:var(--green);box-shadow:0 4px 0 #15803d}
+.btn.orange{background:var(--orange);box-shadow:0 4px 0 #c2410c}
+.btn.ghost{background:#fff;color:var(--ink);box-shadow:0 4px 0 #e2d4ee;border:2px solid #e2d4ee}
+.btn:disabled{opacity:.45}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+.row .btn{flex:1}
+
+/* juego */
+.top{display:flex;align-items:center;gap:8px}
+.top .ttl{flex:1;font-weight:800;font-size:18px;line-height:1.1;text-align:center}
+.top .stars{font-weight:800;font-size:18px;white-space:nowrap}
+.top .btn{padding:6px 10px;font-size:15px}
+.boardwrap{position:relative;width:min(94vw,470px);margin:0 auto;border-radius:14px;padding:6px;background:#8a5a3c;box-shadow:0 6px 0 #6b4329,0 10px 24px rgba(0,0,0,.15)}
+.board{display:grid;grid-template-columns:repeat(8,1fr);grid-template-rows:repeat(8,1fr);aspect-ratio:1/1;border-radius:8px;overflow:visible;user-select:none}
+.sq{position:relative;display:grid;place-items:center;cursor:pointer;min-width:0;min-height:0}
+.sq.l{background:var(--light)} .sq.d{background:var(--dark)}
+.sq:nth-child(1){border-top-left-radius:8px}.sq:nth-child(8){border-top-right-radius:8px}
+.sq:nth-child(57){border-bottom-left-radius:8px}.sq:nth-child(64){border-bottom-right-radius:8px}
+.sq.last{box-shadow:inset 0 0 0 100px rgba(250,204,21,.38)}
+.sq.sel{box-shadow:inset 0 0 0 100px rgba(139,92,246,.45)}
+.sq.chk{box-shadow:inset 0 0 0 100px rgba(239,68,68,.55)}
+.sq.hint{animation:hint 1s ease-in-out infinite}
+@keyframes hint{0%,100%{box-shadow:inset 0 0 0 100px rgba(34,197,94,.15)}50%{box-shadow:inset 0 0 0 100px rgba(34,197,94,.65)}}
+.sq.danger{animation:dng .8s ease-in-out infinite}
+@keyframes dng{0%,100%{box-shadow:inset 0 0 0 100px rgba(239,68,68,.15)}50%{box-shadow:inset 0 0 0 100px rgba(239,68,68,.7)}}
+.sq.bad{animation:bad .45s ease}
+@keyframes bad{0%,100%{box-shadow:inset 0 0 0 100px rgba(239,68,68,0)}50%{box-shadow:inset 0 0 0 100px rgba(239,68,68,.6)}}
+.dot{position:absolute;width:28%;height:28%;border-radius:50%;background:rgba(80,40,120,.35);pointer-events:none}
+.dot.red{background:rgba(239,68,68,.75)}
+.ring.red{border-color:rgba(239,68,68,.85)}
+.ring{position:absolute;inset:6%;border-radius:50%;border:4px solid rgba(80,40,120,.4);pointer-events:none}
+.co{position:absolute;font-size:10px;font-weight:700;opacity:.7;pointer-events:none}
+.co.rk{left:2px;top:0}.co.fl{right:3px;bottom:-1px}
+.sq.l .co{color:#a0653f}.sq.d .co{color:#fff3e4}
+.pc{font-family:"DejaVu Sans","Segoe UI Symbol","Noto Sans Symbols2","Arial Unicode MS",serif;font-size:min(9.2vw,46px);line-height:1;position:relative;z-index:2;pointer-events:none;transition:transform .32s cubic-bezier(.3,.8,.3,1)}
+.pc.w{color:#fff;text-shadow:0 0 1px #3b2a4a,1px 1px 0 #3b2a4a,-1px -1px 0 #3b2a4a,1px -1px 0 #3b2a4a,-1px 1px 0 #3b2a4a,0 2px 0 #3b2a4a,0 4px 3px rgba(0,0,0,.25)}
+.pc.b{color:#2b1d38;text-shadow:0 1px 0 #6b5880,0 3px 3px rgba(0,0,0,.3)}
+.pc.moving{z-index:20}
+.pc.land{animation:land .25s ease}
+@keyframes land{0%{transform:scale(1.25)}100%{transform:scale(1)}}
+
+.tools{display:flex;gap:8px;margin:14px auto 0;width:min(94vw,470px)}
+.tools .btn{flex:1;padding:9px 6px;font-size:16px}
+.goals{width:min(94vw,470px);margin:12px auto 0;background:#fff;border-radius:16px;padding:8px 12px;border:2px solid #efe3f7}
+.gl{display:flex;gap:8px;justify-content:center}
+.gi{font-size:28px;width:46px;height:46px;border-radius:14px;display:grid;place-items:center;background:#f1e9f7;opacity:.4;filter:grayscale(1);transition:all .4s}
+.gi.done{opacity:1;filter:none;background:#dcfce7;transform:scale(1.08)}
+.gl.big .gi{width:58px;height:58px;font-size:34px}
+.goals h4{margin:0 0 4px;font-size:16px}
+.goal{display:flex;align-items:center;gap:8px;font-size:16px;padding:2px 0}
+.goal .ck{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;background:#f1e9f7;font-size:14px;transition:all .3s}
+.goal.done .ck{background:var(--green);color:#fff;transform:scale(1.15)}
+.goal.done{color:#15803d;font-weight:700}
+
+/* modal */
+.modal{position:fixed;inset:0;background:rgba(59,42,74,.45);display:grid;place-items:center;z-index:50;padding:16px}
+.modal .box{background:#fff;border-radius:22px;padding:18px;max-width:400px;width:100%;text-align:center;animation:pop .35s ease;box-shadow:0 10px 30px rgba(0,0,0,.2)}
+.modal .big{font-size:44px;letter-spacing:4px}
+.modal h2{margin:4px 0 6px;font-size:26px}
+.modal p{font-size:17px;margin:0 0 12px;line-height:1.3}
+.modal .btn{width:100%;margin-top:8px}
+.conf{position:fixed;top:-20px;width:10px;height:14px;z-index:60;pointer-events:none;animation:fall linear forwards}
+@keyframes fall{to{transform:translateY(110vh) rotate(720deg)}}
+.starfly{position:fixed;font-size:30px;z-index:60;pointer-events:none;animation:sfly .9s ease-out forwards}
+@keyframes sfly{0%{transform:scale(.4);opacity:1}60%{transform:translateY(-60px) scale(1.4);opacity:1}100%{transform:translateY(-110px) scale(.8);opacity:0}}
+.colorpick{display:flex;gap:8px}
+.colorpick .btn{flex:1}
+</style>
+</head>
+<style>
+.ladder{display:flex;flex-direction:column;gap:10px;margin-top:6px}
+.rv{display:flex;align-items:center;gap:12px;background:#fff;border-radius:20px;padding:10px 14px;border:3px solid #efe3f7;box-shadow:0 4px 0 #ecdcf4;cursor:pointer;transition:transform .12s;position:relative}
+.rv:active{transform:scale(.97)}
+.rv .em{font-size:44px;width:60px;height:60px;display:grid;place-items:center;border-radius:18px;background:#fff4e0}
+.rv .nm{flex:1;font-weight:800;font-size:20px}
+.rv .md{font-size:22px;letter-spacing:2px}
+.rv.cur{border-color:var(--pink);box-shadow:0 4px 0 #d64c80;animation:glow 1.6s ease-in-out infinite}
+@keyframes glow{0%,100%{transform:scale(1)}50%{transform:scale(1.025)}}
+.rv.lock{opacity:.45;filter:grayscale(.8);cursor:default}
+.rv.lock .md{font-size:26px}
+.tbar{height:8px;background:#f1e9f7;border-radius:6px;margin:6px 0 0;overflow:hidden}
+#tfill{height:100%;width:0;background:linear-gradient(90deg,#22c55e,#facc15,#fb923c);border-radius:6px;transition:width 1s}
+.champ{text-align:center;font-size:22px;font-weight:800;background:linear-gradient(135deg,#fff3b0,#ffd166);border-radius:18px;padding:10px;margin:8px 0;box-shadow:0 4px 0 #e0a800}
+.vs{flex:1;text-align:center;font-weight:800;font-size:20px}
+.vs .re{font-size:30px;vertical-align:middle}
+.sumlist{text-align:left;margin:8px 0 4px;font-size:19px}
+.sumlist div{padding:3px 0}
+/* panel papá */
+.pinbox .dots{font-size:34px;letter-spacing:10px;margin:6px 0 10px;min-height:44px}
+.keys{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.keys button{font-family:inherit;font-size:24px;font-weight:800;padding:12px;border-radius:14px;border:2px solid #e2d4ee;background:#fff;color:var(--ink)}
+.panel{position:fixed;inset:0;background:var(--bg);z-index:70;overflow:auto;padding:14px 12px 40px}
+.panel .in{max-width:620px;margin:0 auto}
+.panel h2{margin:4px 0 8px}
+.panel h3{margin:16px 0 6px;font-size:19px}
+.pcard{background:#fff;border-radius:16px;padding:10px 12px;border:2px solid #efe3f7;font-size:16px}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.kpi{background:#fff;border-radius:14px;padding:8px;text-align:center;border:2px solid #efe3f7}
+.kpi b{display:block;font-size:24px}
+.bar{display:flex;align-items:center;gap:8px;margin:5px 0;font-size:15px}
+.bar .lb{width:170px}
+.bar .tr{flex:1;height:14px;background:#f1e9f7;border-radius:8px;overflow:hidden}
+.bar .fi{height:100%;background:var(--orange);border-radius:8px}
+.bar .vl{width:52px;text-align:right;font-weight:700}
+table.gm{width:100%;border-collapse:collapse;font-size:14px;background:#fff;border-radius:12px;overflow:hidden}
+table.gm th,table.gm td{padding:6px 5px;border-bottom:1px solid #f1e9f7;text-align:left}
+table.gm th{background:#f6f0fb}
+.seg{display:flex;gap:6px;flex-wrap:wrap}
+.seg button{font-family:inherit;font-weight:700;font-size:15px;padding:7px 12px;border-radius:12px;border:2px solid #e2d4ee;background:#fff;color:var(--ink)}
+.seg button.on{background:var(--purple);color:#fff;border-color:var(--purple)}
+textarea.rep{width:100%;min-height:150px;font-family:inherit;font-size:14px;border-radius:12px;border:2px solid #e2d4ee;padding:8px}
+</style>
+<body>
+<div class="wrap">
+
+<div id="menu">
+  <h1 id="ttl">♞ Ajedrez con <span>Capi</span></h1>
+  <div class="coach">
+    <div class="owl" id="owlMenu"><svg class="capi" viewBox="0 0 120 112" aria-label="Capi"><ellipse cx="60" cy="106" rx="40" ry="5" fill="rgba(0,0,0,.08)"/><ellipse cx="60" cy="84" rx="42" ry="22" fill="#a26d3b"/><ellipse cx="33" cy="30" rx="9" ry="7" fill="#7d4f26"/><ellipse cx="87" cy="30" rx="9" ry="7" fill="#7d4f26"/><rect x="20" y="24" width="80" height="66" rx="32" fill="#bb8550"/><rect x="33" y="56" width="54" height="32" rx="16" fill="#9a6433"/><ellipse cx="51" cy="64" rx="3.4" ry="2.2" fill="#3f2410"/><ellipse cx="69" cy="64" rx="3.4" ry="2.2" fill="#3f2410"/><ellipse class="mouth" cx="60" cy="77" rx="7" ry="2.6" fill="#5a3018"/><circle cx="32" cy="60" r="5.5" fill="#ff9fb0" opacity=".55"/><circle cx="88" cy="60" r="5.5" fill="#ff9fb0" opacity=".55"/><g class="eyes"><circle cx="44" cy="45" r="4.8" fill="#2b1a0e"/><circle cx="76" cy="45" r="4.8" fill="#2b1a0e"/><circle cx="45.6" cy="43.4" r="1.6" fill="#fff"/><circle cx="77.6" cy="43.4" r="1.6" fill="#fff"/></g><circle cx="60" cy="18" r="11" fill="#ff9f1c"/><circle cx="56" cy="15" r="3" fill="#ffc46b"/><path d="M60 7 q7 -7 13 -2 q-7 5 -13 2z" fill="#3fae5a"/></svg></div>
+    <div class="bubble" id="menuHi">¡Hola! 🧡</div>
+  </div>
+  <div id="champ"></div>
+  <div class="ladder" id="ladder"></div>
+</div>
+
+<div id="game" class="hidden">
+  <div class="top">
+    <button class="btn ghost" onclick="toMenu()">🏠</button>
+    <div class="vs" id="vs"></div>
+    <div class="stars" id="gStars">⭐ 0</div>
+  </div>
+  <div class="tbar"><div id="tfill"></div></div>
+  <div class="coach">
+    <div class="owl" id="owl"><svg class="capi" viewBox="0 0 120 112" aria-label="Capi"><ellipse cx="60" cy="106" rx="40" ry="5" fill="rgba(0,0,0,.08)"/><ellipse cx="60" cy="84" rx="42" ry="22" fill="#a26d3b"/><ellipse cx="33" cy="30" rx="9" ry="7" fill="#7d4f26"/><ellipse cx="87" cy="30" rx="9" ry="7" fill="#7d4f26"/><rect x="20" y="24" width="80" height="66" rx="32" fill="#bb8550"/><rect x="33" y="56" width="54" height="32" rx="16" fill="#9a6433"/><ellipse cx="51" cy="64" rx="3.4" ry="2.2" fill="#3f2410"/><ellipse cx="69" cy="64" rx="3.4" ry="2.2" fill="#3f2410"/><ellipse class="mouth" cx="60" cy="77" rx="7" ry="2.6" fill="#5a3018"/><circle cx="32" cy="60" r="5.5" fill="#ff9fb0" opacity=".55"/><circle cx="88" cy="60" r="5.5" fill="#ff9fb0" opacity=".55"/><g class="eyes"><circle cx="44" cy="45" r="4.8" fill="#2b1a0e"/><circle cx="76" cy="45" r="4.8" fill="#2b1a0e"/><circle cx="45.6" cy="43.4" r="1.6" fill="#fff"/><circle cx="77.6" cy="43.4" r="1.6" fill="#fff"/></g><circle cx="60" cy="18" r="11" fill="#ff9f1c"/><circle cx="56" cy="15" r="3" fill="#ffc46b"/><path d="M60 7 q7 -7 13 -2 q-7 5 -13 2z" fill="#3fae5a"/></svg></div>
+    <div class="bubble" id="bubble"></div>
+  </div>
+  <div class="boardwrap"><div class="board" id="board"></div></div>
+  <div class="tools">
+    <button class="btn orange" id="vbtn" onclick="toggleVoice()">🔊</button>
+  </div>
+  <div class="goals" id="goals"></div>
+</div>
+
+</div>
+<div id="modal"></div>
+<div id="panel"></div>
+<script>
+//ENGINE-START
+const FILES='abcdefgh';
+const sqi=s=>(8-+s[1])*8+FILES.indexOf(s[0]);
+const nm=i=>FILES[i&7]+(8-(i>>3));
+const isW=p=>!!p&&p===p.toUpperCase();
+const VAL={p:1,n:3,b:3,r:5,q:9,k:100};
+const KN=[[-2,-1],[-2,1],[-1,-2],[-1,2],[1,-2],[1,2],[2,-1],[2,1]];
+const KG=[[-1,-1],[-1,0],[-1,1],[0,-1],[0,1],[1,-1],[1,0],[1,1]];
+const RD=[[-1,0],[1,0],[0,-1],[0,1]],BD=[[-1,-1],[-1,1],[1,-1],[1,1]];
+const on=(r,c)=>r>=0&&r<8&&c>=0&&c<8;
+function startPos(){const r='rnbqkbnr',b=Array(64).fill(null);
+  for(let c=0;c<8;c++){b[c]=r[c];b[8+c]='p';b[48+c]='P';b[56+c]=r[c].toUpperCase();}
+  return{b,w:true,cr:{K:1,Q:1,k:1,q:1},ep:-1};}
+function attacked(b,s,byW){const r=s>>3,c=s&7;
+  const pr=byW?r+1:r-1,P=byW?'P':'p';
+  for(const dc of[-1,1]) if(on(pr,c+dc)&&b[pr*8+c+dc]===P) return true;
+  const N=byW?'N':'n',K=byW?'K':'k',R=byW?'R':'r',B=byW?'B':'b',Q=byW?'Q':'q';
+  for(const[dr,dc]of KN){const y=r+dr,x=c+dc;if(on(y,x)&&b[y*8+x]===N)return true;}
+  for(const[dr,dc]of KG){const y=r+dr,x=c+dc;if(on(y,x)&&b[y*8+x]===K)return true;}
+  for(const[dr,dc]of RD){let y=r+dr,x=c+dc;while(on(y,x)){const p=b[y*8+x];if(p){if(p===R||p===Q)return true;break;}y+=dr;x+=dc;}}
+  for(const[dr,dc]of BD){let y=r+dr,x=c+dc;while(on(y,x)){const p=b[y*8+x];if(p){if(p===B||p===Q)return true;break;}y+=dr;x+=dc;}}
+  return false;}
+const kingSq=(b,w)=>b.indexOf(w?'K':'k');
+function pseudo(s){const M=[],b=s.b,w=s.w;
+  for(let i=0;i<64;i++){const p=b[i];if(!p||isW(p)!==w)continue;
+    const t=p.toLowerCase(),r=i>>3,c=i&7;
+    const add=(to,x)=>M.push(Object.assign({f:i,t:to,p:p,cap:b[to]},x||{}));
+    if(t==='p'){const d=w?-1:1,r1=r+d,pr=(r1===0||r1===7)?{promo:w?'Q':'q'}:null;
+      if(on(r1,c)&&!b[r1*8+c]){add(r1*8+c,pr);
+        if(r===(w?6:1)&&!b[(r+2*d)*8+c])add((r+2*d)*8+c,{dbl:1});}
+      for(const dc of[-1,1]){const C=c+dc;if(!on(r1,C))continue;const to=r1*8+C;
+        if(b[to]&&isW(b[to])!==w)add(to,pr);
+        else if(to===s.ep)add(to,{epc:1,cap:w?'p':'P'});}
+    } else if(t==='n'||t==='k'){
+      for(const[dr,dc]of(t==='n'?KN:KG)){const y=r+dr,x=c+dc;if(!on(y,x))continue;const q=b[y*8+x];if(!q||isW(q)!==w)add(y*8+x);}
+      if(t==='k'){
+        if(w&&i===60){
+          if(s.cr.K&&b[63]==='R'&&!b[61]&&!b[62]&&!attacked(b,60,false)&&!attacked(b,61,false)&&!attacked(b,62,false))add(62,{castle:'K'});
+          if(s.cr.Q&&b[56]==='R'&&!b[59]&&!b[58]&&!b[57]&&!attacked(b,60,false)&&!attacked(b,59,false)&&!attacked(b,58,false))add(58,{castle:'Q'});}
+        if(!w&&i===4){
+          if(s.cr.k&&b[7]==='r'&&!b[5]&&!b[6]&&!attacked(b,4,true)&&!attacked(b,5,true)&&!attacked(b,6,true))add(6,{castle:'k'});
+          if(s.cr.q&&b[0]==='r'&&!b[3]&&!b[2]&&!b[1]&&!attacked(b,4,true)&&!attacked(b,3,true)&&!attacked(b,2,true))add(2,{castle:'q'});}
+      }
+    } else {const dirs=t==='r'?RD:t==='b'?BD:RD.concat(BD);
+      for(const[dr,dc]of dirs){let y=r+dr,x=c+dc;while(on(y,x)){const q=b[y*8+x];if(q){if(isW(q)!==w)add(y*8+x);break;}add(y*8+x);y+=dr;x+=dc;}}
+    }
+  }
+  return M;}
+const ROOK={K:[63,61],Q:[56,59],k:[7,5],q:[0,3]};
+function make(s,m){const b=s.b.slice();b[m.t]=m.promo||b[m.f];b[m.f]=null;
+  if(m.epc)b[m.t+(s.w?8:-8)]=null;
+  if(m.castle){const[a,z]=ROOK[m.castle];b[z]=b[a];b[a]=null;}
+  const cr=Object.assign({},s.cr);
+  if(m.p==='K'){cr.K=0;cr.Q=0;} if(m.p==='k'){cr.k=0;cr.q=0;}
+  for(const x of[m.f,m.t]){if(x===63)cr.K=0;if(x===56)cr.Q=0;if(x===7)cr.k=0;if(x===0)cr.q=0;}
+  return{b,w:!s.w,cr,ep:m.dbl?(m.f+m.t)/2:-1};}
+function legal(s){return pseudo(s).filter(m=>{const n=make(s,m);return !attacked(n.b,kingSq(n.b,s.w),!s.w);});}
+const uci=m=>nm(m.f)+nm(m.t);
+const inCheck=s=>attacked(s.b,kingSq(s.b,s.w),!s.w);
+function minAtt(b,s,byW){let v=null;for(const m of pseudo({b,w:byW,cr:{},ep:-1})){if(m.t===s){const x=VAL[m.p.toLowerCase()];if(v===null||x<v)v=x;}}return v;}
+// valor de la pieza más en peligro del bando "side"
+function hanging(b,side){let best=0,where=-1;
+  for(let i=0;i<64;i++){const p=b[i];if(!p||isW(p)!==side)continue;const t=p.toLowerCase();if(t==='k')continue;
+    const a=minAtt(b,i,!side);if(a===null)continue;const v=VAL[t];
+    const loss=attacked(b,i,side)?(a<v?v-a:0):v;
+    if(loss>best){best=loss;where=i;}}
+  return{v:best,sq:where};}
+
+const LESSONS=[
+ {icon:'👑',bg:'#fff1c2',color:'w',title:'Las 3 reglas de oro',desc:'Empieza con blancas como un campeón (Apertura Italiana)',
+  intro:'En esta lección juegas con <b>blancas</b>. Vamos a usar las <b>3 reglas de oro</b>: peones al centro, sacar piezas y enrocar. ¡Yo te digo qué mover y por qué!',
+  moves:[
+   {me:'e2e4',say:'<b>Regla 1: ¡al centro!</b> Mueve el peón de <b>e2 a e4</b>. Así abres caminos para tu dama y tu alfil.',ok:'¡Genial! Ese peón ya manda en el centro.'},
+   {op:'e7e5',say:'Las negras también ponen un peón en el centro.'},
+   {me:'g1f3',say:'<b>Regla 2: saca piezas.</b> Lleva el caballo de <b>g1 a f3</b>. ¡Y de paso ataca el peón de e5!',ok:'¡Muy bien! El caballo mira hacia el centro.'},
+   {op:'b8c6',say:'Las negras protegen su peón con un caballo.'},
+   {me:'f1c4',say:'Ahora el alfil: de <b>f1 a c4</b>. Desde ahí apunta a <b>f7</b>, la casilla más débil de las negras.',ok:'¡Bravo! Fíjate: entre tu rey y la torre ya no hay nadie...'},
+   {op:'f8c5',say:'Las negras copian tu idea con su alfil.'},
+   {me:'e1g1',say:'<b>Regla 3: ¡enroca!</b> Toca el <b>rey</b> y muévelo dos casillas hacia la torre (<b>e1 a g1</b>). La torre salta sola.',ok:'¡Enroque! Tu rey ya está en su castillo 🏰'},
+   {op:'g8f6',say:'Las negras sacan su otro caballo.'},
+   {me:'d2d3',say:'Mueve el peón de <b>d2 a d3</b>: protege tu peón de e4 y abre la puerta al alfil de c1.',ok:'¡Bien pensado!'},
+   {op:'d7d6',say:'Las negras hacen lo mismo.'},
+   {me:'b1c3',say:'Saca el último caballo: de <b>b1 a c3</b>.',ok:'¡Perfecto!'}
+  ],
+  end:'Centro ✔️ Piezas fuera ✔️ Rey seguro ✔️. ¡Así empieza una partida un campeón!'},
+ {icon:'🛡️',bg:'#ffe0ea',color:'b',title:'¡Que no te hagan el Mate del Pastor!',desc:'Con negras: defiéndete cuando la dama sale pronto',
+  intro:'Ahora juegas con <b>negras</b>. Hay una trampa muy famosa: el <b>Mate del Pastor</b>. La dama y el alfil blancos atacan <b>f7</b>. ¡Vamos a aprender a pararlo!',
+  moves:[
+   {op:'e2e4',say:'Las blancas empiezan con un peón al centro.'},
+   {me:'e7e5',say:'Tú también: mueve tu peón de <b>e7 a e5</b>.',ok:'¡Eso es! Centro para ti también.'},
+   {op:'f1c4',say:'Hmm... el alfil blanco ya mira a <b>f7</b>. 👀'},
+   {me:'b8c6',say:'Saca un caballo: de <b>b8 a c6</b>. Protege tu peón de e5.',ok:'¡Bien! Pieza fuera.'},
+   {op:'d1h5',say:'⚠️ ¡Peligro! La dama blanca y el alfil apuntan a <b>f7</b>. Si no haces nada, ¡la dama come f7 y es <b>jaque mate</b>!'},
+   {me:'g7g6',say:'Mueve el peón de <b>g7 a g6</b>. Así <b>atacas a la dama</b> y además <b>tapas</b> su camino hacia f7.',ok:'¡Toma! La dama tiene que escapar.'},
+   {op:'h5f3',say:'La dama se escapa a f3... ¡y vuelve a apuntar a f7!'},
+   {me:'g8f6',say:'Pon un muro: caballo de <b>g8 a f6</b>. Tapa el camino y además sacas otra pieza.',ok:'¡Muro levantado! 🧱'},
+   {op:'f3b3',say:'¡Qué pesada! La dama se pone detrás del alfil para atacar f7 otra vez.'},
+   {me:'d8e7',say:'Protege f7 con tu dama: de <b>d8 a e7</b>.',ok:'¡Bien! f7 ya está defendido.'},
+   {op:'b1c3',say:'Las blancas sacan un caballo.'},
+   {me:'c6d4',say:'¡Hora de contraatacar! Caballo de <b>c6 a d4</b>: ataca a la <b>dama</b> y al peón de c2.',ok:'¡Zas! Ahora es la dama blanca la que tiene que huir.'}
+  ],
+  end:'Recuerda: si la dama rival sale muy pronto, <b>protege f7</b> y <b>atácala mientras sacas tus piezas</b>.'},
+ {icon:'🐴',bg:'#dff7e6',color:'b',title:'Negras contra e4',desc:'Saca tus piezas y enroca rápido',
+  intro:'Juegas con <b>negras</b>. Cuando las blancas empiezan con <b>e4</b>, tú también usas las reglas de oro.',
+  moves:[
+   {op:'e2e4',say:'Las blancas ponen el peón de rey en el centro.'},
+   {me:'e7e5',say:'Contesta igual: peón de <b>e7 a e5</b>.',ok:'¡Bien! Tú también tienes centro.'},
+   {op:'g1f3',say:'El caballo blanco <b>ataca tu peón de e5</b>.'},
+   {me:'b8c6',say:'Defiéndelo sacando un caballo: de <b>b8 a c6</b>.',ok:'¡Perfecto! Proteges y sacas pieza a la vez.'},
+   {op:'f1c4',say:'El alfil blanco sale a c4.'},
+   {me:'f8c5',say:'Saca tu alfil: de <b>f8 a c5</b>. Así ya casi puedes enrocar.',ok:'¡Muy bien!'},
+   {op:'c2c3',say:'Las blancas preparan avanzar el peón a d4.'},
+   {me:'g8f6',say:'Saca el otro caballo: de <b>g8 a f6</b>. ¡Ataca el peón de e4!',ok:'¡Bien visto!'},
+   {op:'d2d3',say:'Las blancas protegen su peón.'},
+   {me:'d7d6',say:'Peón de <b>d7 a d6</b>: protege e5 y abre camino a tu alfil de c8.',ok:'¡Bien!'},
+   {op:'e1g1',say:'Las blancas enrocan.'},
+   {me:'e8g8',say:'¡Tú también! Toca tu <b>rey</b> y llévalo de <b>e8 a g8</b>.',ok:'¡Enroque! Rey a salvo 🏰'}
+  ],
+  end:'¡Salida perfecta con negras! Centro, caballos, alfil y enroque.'},
+ {icon:'🏰',bg:'#e0ecff',color:'w',title:'Blancas empezando con d4',desc:'El Sistema Londres: fácil y seguro',
+  intro:'Juegas con <b>blancas</b>, pero esta vez empiezas con el <b>otro</b> peón central. Es una salida muy segura que usan muchos campeones.',
+  moves:[
+   {me:'d2d4',say:'Peón al centro: de <b>d2 a d4</b>.',ok:'¡Bien! Peón de dama al centro.'},
+   {op:'d7d5',say:'Las negras también ponen su peón en d5.'},
+   {me:'c1f4',say:'Saca el alfil de <b>c1 a f4</b>. Ojo: lo sacamos <b>antes</b> de mover el peón de e, ¡si no se quedaría encerrado!',ok:'¡Listísima! El alfil ya está fuera.'},
+   {op:'g8f6',say:'Las negras sacan un caballo.'},
+   {me:'e2e3',say:'Ahora sí: peón de <b>e2 a e3</b>. Protege d4 y abre camino al otro alfil.',ok:'¡Muy bien!'},
+   {op:'e7e6',say:'Las negras abren camino a su alfil.'},
+   {me:'g1f3',say:'Saca el caballo de <b>g1 a f3</b>.',ok:'¡Caballo fuera! 🐴'},
+   {op:'f8d6',say:'El alfil negro ataca tu alfil de f4.'},
+   {me:'f4g3',say:'Retira tu alfil a <b>g3</b>. Sigue vigilando la misma diagonal y está protegido.',ok:'¡Bien salvado!'},
+   {op:'e8g8',say:'Las negras enrocan.'},
+   {me:'f1d3',say:'Saca el último alfil: de <b>f1 a d3</b>.',ok:'¡Perfecto!'},
+   {op:'c7c5',say:'Las negras atacan tu centro con un peón.'},
+   {me:'e1g1',say:'¡A enrocar! Rey de <b>e1 a g1</b>.',ok:'¡Enroque! 🏰'}
+  ],
+  end:'¡Genial! Con esta salida siempre sabes qué hacer: d4, alfil a f4, e3, caballo a f3, alfil a d3 y enroque.'},
+ {icon:'🧱',bg:'#efe4ff',color:'b',title:'Negras contra d4',desc:'Un centro fuerte como un muro',
+  intro:'Juegas con <b>negras</b> y las blancas empiezan con <b>d4</b>. Vamos a construir un centro fuerte.',
+  moves:[
+   {op:'d2d4',say:'Las blancas empiezan con el peón de dama.'},
+   {me:'d7d5',say:'Pon tu peón también en el centro: de <b>d7 a d5</b>.',ok:'¡Bien! Los dos peones se miran.'},
+   {op:'c2c4',say:'Las blancas ofrecen un peón para quitarte el centro.'},
+   {me:'e7e6',say:'No hace falta comerlo. Protege tu peón: de <b>e7 a e6</b>.',ok:'¡Muro firme! 🧱'},
+   {op:'b1c3',say:'Las blancas sacan un caballo.'},
+   {me:'g8f6',say:'Tú también: caballo de <b>g8 a f6</b>.',ok:'¡Muy bien!'},
+   {op:'c1g5',say:'El alfil blanco se pone delante de tu caballo.'},
+   {me:'f8e7',say:'Alfil de <b>f8 a e7</b>: protege al caballo y deja libre el camino para enrocar.',ok:'¡Inteligente!'},
+   {op:'e2e3',say:'Las blancas mueven un peón.'},
+   {me:'e8g8',say:'¡Enroca! Rey de <b>e8 a g8</b>.',ok:'¡Rey en su castillo! 🏰'},
+   {op:'g1f3',say:'Las blancas sacan su otro caballo.'},
+   {me:'b8d7',say:'Saca tu último caballo: de <b>b8 a d7</b>.',ok:'¡Todas tus piezas pequeñas están fuera!'}
+  ],
+  end:'¡Fantástico! Contra d4: peón a d5, muro con e6, caballos fuera y enroque.'}
+];
+const BOOK=LESSONS.map(L=>L.moves.map(x=>x.me||x.op)).concat([
+ 'e2e4 e7e5 g1f3 b8c6 f1b5 a7a6 b5a4 g8f6 e1g1 f8e7'.split(' '),
+ 'e2e4 e7e5 g1f3 b8c6 d2d4 e5d4 f3d4 g8f6 b1c3 f8b4'.split(' '),
+ 'd2d4 g8f6 c2c4 e7e6 b1c3 f8b4 e2e3 e8g8'.split(' '),
+ 'e2e4 e7e5 b1c3 g8f6 g1f3 b8c6 f1b5 f8b4'.split(' '),
+ 'c2c4 e7e5 b1c3 g8f6 g1f3 b8c6 g2g3 d7d5'.split(' '),
+ 'g1f3 d7d5 d2d4 g8f6 c1f4 e7e6 e2e3 f8d6'.split(' ')
+]);
+//ENGINE-END
+
+/* ================= INTERFAZ ================= */
+const GL={k:'♚',q:'♛',r:'♜',b:'♝',n:'♞',p:'♟'};
+const NAME={p:'peón',n:'caballo',b:'alfil',r:'torre',q:'dama',k:'rey'};
+const $=id=>document.getElementById(id);
+const RIVALS=[
+ {e:'🐭',n:'Ratoncito Pip',noise:9,hw:2,book:false},
+ {e:'🐰',n:'Conejita Nina',noise:6,hw:5,book:true},
+ {e:'🦊',n:'Zorro Rufo',noise:3.5,hw:8,book:true},
+ {e:'🐻',n:'Oso Bruno',noise:1.5,hw:9,book:true,safe:true},
+ {e:'🦁',n:'León Rey',noise:.4,hw:9,book:true,safe:true}];
+const WINS_NEEDED=2;
+
+/* ---- datos guardados en esta tablet ---- */
+const KEY='capi-ajedrez-v2';
+function load(){let d={};try{d=JSON.parse(localStorage.getItem(KEY))||{}}catch(e){}
+  d.games=d.games||[];d.sessions=d.sessions||[];d.name=d.name||'Ana Valentina';d.mins=d.mins||20;d.wins=d.wins||[0,0,0,0,0];d.level=d.level||0;d.talk=d.talk||5;
+  if(d.voice===undefined)d.voice=true;if(d.lastWhite===undefined)d.lastWhite=false;return d;}
+function store(d){try{localStorage.setItem(KEY,JSON.stringify(d))}catch(e){}}
+let D=load();
+const NM=()=>D.name||'Ana Valentina';
+let sess=null,quiz=null,helloText='',whyCool=0,why=null;
+const sessLeft=()=>sess?Math.max(0,D.mins*60000-(Date.now()-sess.start)):1;
+
+/* ---- estado ---- */
+let S,mode='menu',myW=true,flip=false,sel=-1,lastMv=null,busy=false,hintSq=[],dangerSq=-1,moves=[],gameOver=false,stars=0;
+let rival=0,landed=new Set(),castled=false,myCount=0,goalDone=false;
+let sinceTalk=0,nextTalk=5,recent=[],mateHint=0,named=false,myMoves=[],tipIx=0,streak=0,lastTo=-1,ST={};
+
+/* ---- voz de Capi ---- */
+function speak(text){if(!D.voice||!window.speechSynthesis||!text)return;try{
+  const d=document.createElement('div');d.innerHTML=text;
+  const t=d.textContent.replace(/[\u{1F300}-\u{1FAFF}☀-➿️⭐]/gu,'').replace(/\s+/g,' ').trim();if(!t)return;
+  const u=new SpeechSynthesisUtterance(t);u.lang='es-ES';
+  const vs=speechSynthesis.getVoices().filter(v=>/^es/i.test(v.lang));
+  const v=vs.find(v=>/^es[-_]ES/i.test(v.lang)&&/m[oó]nica|helena|laura|elvira|luc[ií]a|paulina|female|mujer/i.test(v.name))||vs.find(v=>/^es[-_]ES/i.test(v.lang))||vs[0];
+  if(v)u.voice=v;u.rate=.92;u.pitch=1.25;
+  const on=()=>document.querySelectorAll('.owl').forEach(e=>e.classList.add('talking'));
+  const off=()=>{if(!speechSynthesis.speaking)document.querySelectorAll('.owl').forEach(e=>e.classList.remove('talking'));};
+  u.onstart=on;u.onend=()=>setTimeout(off,60);u.onerror=off;speechSynthesis.speak(u);}catch(e){}}
+function hush(){try{speechSynthesis.cancel();}catch(e){}document.querySelectorAll('.owl').forEach(e=>e.classList.remove('talking'));}
+function toggleVoice(){D.voice=!D.voice;store(D);if(!D.voice)hush();$('vbtn').textContent=D.voice?'🔊':'🔇';if(D.voice)speak('Aquí estoy, cariño.');}
+function say(voice,show,mood){if(voice)speak(voice);const b=$('bubble');b.innerHTML=show||voice||'';b.classList.remove('pop');void b.offsetWidth;b.classList.add('pop');
+  const o=$('owl');o.classList.remove('happy','worry');void o.offsetWidth;if(mood)o.classList.add(mood);}
+function teach(v,s,mood){say(v,s,mood);sinceTalk=0;nextTalk=D.talk+(Math.random()<.5?1:0);}
+function quiet(s){say('',s);}
+
+/* ---- sonidos y fiesta ---- */
+let audio=null;
+function beep(f=520,d=.08,type='sine',v=.08){try{audio=audio||new (window.AudioContext||window.webkitAudioContext)();
+  const o=audio.createOscillator(),g=audio.createGain();o.type=type;o.frequency.value=f;g.gain.value=v;
+  o.connect(g);g.connect(audio.destination);o.start();g.gain.exponentialRampToValueAtTime(.0001,audio.currentTime+d);o.stop(audio.currentTime+d+.02);}catch(e){}}
+const sndMove=()=>beep(300,.07,'triangle',.12);
+const sndGood=()=>{beep(660,.1);setTimeout(()=>beep(880,.14),90);};
+const sndWin=()=>{[523,659,784,1046].forEach((f,i)=>setTimeout(()=>beep(f,.18,'triangle',.12),i*140));};
+function setStars(){$('gStars').textContent='⭐ '+stars;}
+function starFly(){const r=$('gStars').getBoundingClientRect();const s=document.createElement('div');s.className='starfly';s.textContent='⭐';
+  s.style.left=r.left+'px';s.style.top=(r.top+30)+'px';document.body.appendChild(s);setTimeout(()=>s.remove(),1000);}
+function confetti(){const cs=['#ff7aa8','#8b5cf6','#22c55e','#facc15','#fb923c','#38bdf8'];
+  for(let i=0;i<70;i++){const d=document.createElement('div');d.className='conf';d.style.left=Math.random()*100+'vw';
+    d.style.background=cs[i%cs.length];d.style.animationDuration=(1.6+Math.random()*1.6)+'s';d.style.animationDelay=(Math.random()*.4)+'s';
+    d.style.borderRadius=Math.random()<.5?'50%':'2px';document.body.appendChild(d);setTimeout(()=>d.remove(),3600);}}
+
+/* ---- menú del campeonato ---- */
+function buildMenu(){D=load();if($('menuHi'))$('menuHi').textContent=`¡Hola, ${NM()}! 🧡`;
+  $('champ').innerHTML=D.champ?`<div class="champ">🏆 ¡Bravo, ${NM()}! 🏆</div>`:'';
+  $('ladder').innerHTML=RIVALS.map((r,i)=>{const lock=i>D.level,w=Math.min(D.wins[i],WINS_NEEDED);
+    const md=lock?'🔒':('🥇'.repeat(w)+'⚪'.repeat(WINS_NEEDED-w));
+    return `<div class="rv ${lock?'lock':''} ${i===D.level&&!D.champ?'cur':''}" onclick="${lock?'':'startGame('+i+')'}">
+      <div class="em">${r.e}</div><div class="nm">${r.n}</div><div class="md">${md}</div></div>`;}).join('');}
+function toMenu(){mode='menu';busy=false;gameOver=true;clearTimeout(window._t1);hush();$('modal').innerHTML='';
+  $('game').classList.add('hidden');$('menu').classList.remove('hidden');buildMenu();window.scrollTo(0,0);}
+
+/* ---- tablero ---- */
+function render(anim){const B=$('board');B.innerHTML='';
+  const legalFrom=sel>=0?legal(S).filter(m=>m.f===sel):[];
+  const ck=inCheck(S)?kingSq(S.b,S.w):-1;
+  for(let d=0;d<64;d++){const s=flip?63-d:d,r=s>>3,c=s&7;
+    const el=document.createElement('div');el.className='sq '+((r+c)%2?'d':'l');el.dataset.s=s;
+    if(lastMv&&(s===lastMv.f||s===lastMv.t))el.classList.add('last');
+    if(s===sel)el.classList.add('sel');
+    if(s===ck)el.classList.add('chk');
+    if(hintSq.includes(s))el.classList.add('hint');
+    if(s===dangerSq)el.classList.add('danger');
+    const p=S.b[s];
+    if(p){const sp=document.createElement('span');sp.className='pc '+(isW(p)?'w':'b');sp.textContent=GL[p.toLowerCase()]+'︎';
+      if(anim===s)sp.classList.add('land');el.appendChild(sp);}
+    const lm=legalFrom.find(m=>m.t===s);
+    if(lm){const k=document.createElement('div');k.className=(lm.cap?'ring':'dot')+(risky(S,lm)?' red':'');el.appendChild(k);}
+    el.onclick=()=>onSq(s);B.appendChild(el);}}
+const sqEl=s=>$('board').querySelector(`[data-s="${s}"]`);
+function animate(m,cb){const pairs=[[m.f,m.t]];if(m.castle)pairs.push(ROOK[m.castle]);
+  for(const[a,z]of pairs){const A=sqEl(a),Z=sqEl(z);if(!A||!Z)continue;const pc=A.querySelector('.pc');if(!pc)continue;
+    const ra=A.getBoundingClientRect(),rz=Z.getBoundingClientRect();pc.classList.add('moving');
+    pc.style.transform=`translate(${rz.left-ra.left}px,${rz.top-ra.top}px)`;}
+  setTimeout(cb,340);}
+function doMove(m,cb){busy=true;sel=-1;hintSq=[];dangerSq=-1;
+  animate(m,()=>{S=make(S,m);moves.push(uci(m));lastMv=m;render(m.t);sndMove();busy=false;cb&&cb();});}
+function onSq(s){if(busy||gameOver||mode!=='play'||S.w!==myW)return;
+  if(quiz){answerQuiz(s);return;}
+  if(sel>=0){const m=legal(S).find(x=>x.f===sel&&x.t===s);if(m){playMove(m);return;}}
+  const p=S.b[s];
+  if(p&&isW(p)===myW){sel=(sel===s?-1:s);render();}
+  else{sel=-1;render();}}
+
+/* ---- análisis ---- */
+function scoreMove(s,m,nMoves,hw){hw=hw===undefined?9:hw;const side=s.w,n=make(s,m);let sc=0;
+  const nl=legal(n);if(!nl.length){if(inCheck(n))sc+=1000;else sc-=30;}
+  if(m.cap)sc+=VAL[m.cap.toLowerCase()]*10;
+  if(m.promo)sc+=80;
+  sc-=hanging(n.b,side).v*hw;
+  if(nMoves<24){const t=m.p.toLowerCase(),fr=m.f>>3,home=side?7:0;
+    if((t==='n'||t==='b')&&fr===home)sc+=3;if(m.castle)sc+=6;
+    if(t==='n'&&((m.t&7)===0||(m.t&7)===7))sc-=2;
+    if(t==='p'&&(m.f&7)>=3&&(m.f&7)<=4&&fr===(side?6:1))sc+=2.5;
+    if(t==='q')sc-=2.5;if(t==='k'&&!m.castle)sc-=4;if(t==='r')sc-=1.5;
+    if(t==='p'&&[0,1,5,6,7].includes(m.f&7))sc-=1.5;}
+  if(inCheck(n))sc+=1;
+  return sc;}
+function bestFor(s,nMoves,except){let best=null,bs=-1e9;
+  for(const m of legal(s)){if(except&&uci(m)===uci(except))continue;const sc=scoreMove(s,m,nMoves);if(sc>bs){bs=sc;best=m;}}
+  return best;}
+function mateIn1(s){for(const m of legal(s)){const n=make(s,m);if(inCheck(n)&&!legal(n).length)return m;}return null;}
+function risky(s,m){const n=make(s,m),v=VAL[(m.promo||m.p).toLowerCase()];if(mateIn1(n))return true;if(v<3)return false;
+  const a=minAtt(n.b,m.t,!s.w);if(a===null)return false;
+  const loss=attacked(n.b,m.t,s.w)?(a<v?v-a:0):v;const capV=m.cap?VAL[m.cap.toLowerCase()]:0;
+  return loss>=2&&loss>capV;}
+function enemyMateThreat(){if(inCheck(S))return null;return mateIn1({b:S.b,w:!S.w,cr:S.cr,ep:-1});}
+
+/* ---- Capi mira cada jugada ---- */
+function coach(m,prev){const t=m.p.toLowerCase(),fc=m.f&7,tc=m.t&7,fr=m.f>>3,home=myW?7:0,n=myCount;
+  const G=(v,s)=>({v,s,good:true});const W=(v,s,k)=>({v,s,bad:true,k});const I=()=>({v:'',s:''});
+  const after=make(prev,m);const capV=m.cap?VAL[m.cap.toLowerCase()]:0;
+  if(n<=12&&!m.cap&&!m.castle&&((t==='n'&&(tc===0||tc===7))||(t==='p'&&(fc===0||fc===7))||((t==='b'||t==='q'||t==='r')&&(tc===0||tc===7))))ST.edge++;
+  const h=hanging(after.b,myW);
+  if(h.v-capV>=2&&h.sq>=0){dangerSq=h.sq;const pz=NAME[after.b[h.sq].toLowerCase()];
+    return W(`Cariño, mira el ${pz} que brilla en rojo. Se ha quedado solito y el enemigo se lo puede comer. Antes de mover, mira si tu pieza está protegida.`,'🤔','solo');}
+  const again=landed.has(m.f);
+  if(m.castle)return G('¡Bravo! Tu rey ya está en su castillo.','🏰');
+  if(m.cap)return G('','😋');
+  if(n>10)return I();
+  if(t==='q'&&n<=6){ST.queenEarly++;return W('Mira, cariño, la dama es muy fuerte, pero si sale tan pronto el enemigo la persigue. Primero saca los caballos y los alfiles.','🤔','dama');}
+  if(t==='k'){ST.kingWalk++;return W('Mira, cariño, el rey mejor se queda en casa. Luego lo guardamos en su castillo con el enroque.','🤔','rey');}
+  if(t==='r'&&!castled)return W('Las torres son las últimas en salir, cuando el rey ya está guardado.','🤔','torre');
+  if(again&&n<=8&&t!=='p')return W('Esa pieza ya salió, cariño. Al principio es mejor sacar una pieza nueva de casa.','🤔','repite');
+  if(t==='p'){
+    if((fc===5||fc===6)&&n<=6){ST.fpawn++;return W('Mira, ese peón cuida al rey. Si lo mueves tan pronto, el rey se queda sin protección y te pueden hacer un mate muy rápido.','🤔','peonrey');}
+    if(fc===3||fc===4)return again?I():G('','⭐');
+    if(fc===2)return I();
+    if(n<=6)return W('Ese peón de la orilla no ayuda mucho ahora. Mejor un peón del medio, o sacar un caballo.','🤔','orilla');
+    return I();}
+  if(t==='n'&&fr===home){if(tc===0||tc===7)return W('El caballo en la orilla llega a muy poquitas casillas. Mejor ponlo más al medio.','🤔','caballo');return G('','⭐');}
+  if(t==='b'&&fr===home)return G('','⭐');
+  return I();}
+function openingName(){if(named)return '';const has=(...a)=>a.every(x=>myMoves.includes(x));
+  if(myW&&has('e2e4','g1f3','f1c4')){named=true;return '¡Qué bien! Esta salida se llama la Italiana. ¡Qué bien lo haces!';}
+  if(myW&&has('d2d4','c1f4')){named=true;return '¡Muy bien! Esta salida se llama el Sistema Londres. Es muy segura.';}
+  if(myW&&has('e2e4','g1f3','b1c3')){named=true;return '¡Muy bien! Centro y dos caballos fuera. ¡Así se empieza!';}
+  if(!myW&&has('e7e5','b8c6','g8f6')){named=true;return '¡Qué bien te defiendes! Peón al medio y los dos caballos fuera.';}
+  if(!myW&&has('d7d5','e7e6','g8f6')){named=true;return '¡Qué muro tan fuerte has hecho en el medio!';}
+  return '';}
+function goalsState(){const b=S.b,w=myW,P=w?'P':'p',N=w?'N':'n',B=w?'B':'b',hr=w?'1':'8',pr=w?'2':'7';
+  return{center:b[sqi('d'+pr)]!==P||b[sqi('e'+pr)]!==P,kn:(b[sqi('b'+hr)]!==N)+(b[sqi('g'+hr)]!==N),bi:(b[sqi('c'+hr)]!==B)+(b[sqi('f'+hr)]!==B),castle:castled};}
+function updGoals(){const g=goalsState();const it=(ok,t)=>`<div class="gi ${ok?'done':''}">${t}</div>`;
+  $('goals').innerHTML=`<div class="gl">${it(g.center,'♟')}${it(g.kn>=1,'♞')}${it(g.kn===2,'♞')}${it(g.bi>=1,'♝')}${it(g.bi===2,'♝')}${it(g.castle,'🏰')}</div>`;return g;}
+function remind(){const g=goalsState(),n=myCount;
+  const free=legal(S).find(m=>m.cap&&VAL[m.cap.toLowerCase()]>=3&&!risky(S,m)&&hanging(make(S,m).b,myW).v<VAL[m.cap.toLowerCase()]);
+  if(free)return 'Mira bien el tablero, cariño... hay una pieza del enemigo solita. ¿La ves?';
+  if(n<12&&!g.center)return '¿Te acuerdas? Primero un peón del medio, para abrir caminos.';
+  if(n<14&&g.kn+g.bi<4)return 'Recuerda, cariño: tus caballos y alfiles siguen dormidos en casa. ¡Despiértalos!';
+  if(!castled&&n<20&&(myW?(S.cr.K||S.cr.Q):(S.cr.k||S.cr.q)))return 'No te olvides de guardar al rey en su castillo con el enroque.';
+  if(hanging(S.b,myW).v>=2)return 'Antes de mover, mira si todas tus piezas están protegidas.';
+  const tips=n<16?['Lo estás haciendo muy bien. Antes de mover, piensa: ¿qué quiere hacer el enemigo?',
+    'Busca jaques, capturas y amenazas, como hacen los campeones.',
+    'Las piezas juntas se protegen entre ellas, como buenas amigas.']
+   :['Para rematar, junta varias piezas cerca del rey enemigo y dale jaque.',
+    'Mira si puedes dar jaque. A veces un jaque gana la partida.',
+    'Si tienes más piezas que el enemigo, cámbialas y será más fácil ganar.',
+    'Los peones que llegan al final se convierten en dama. ¡Empújalos!'];
+  return tips[(tipIx++)%tips.length];}
+
+/* ---- partida ---- */
+function startGame(i){D=load();if(!sess||sessLeft()===0){openHello(i);return;}rival=i;const R=RIVALS[i];myW=!D.lastWhite;D.lastWhite=myW;store(D);
+  mode='play';flip=!myW;S=startPos();moves=[];lastMv=null;sel=-1;hintSq=[];dangerSq=-1;stars=0;
+  landed=new Set();castled=false;myCount=0;goalDone=false;gameOver=false;busy=false;
+  sinceTalk=0;nextTalk=D.talk;recent=[];whyCool=0;why=null;mateHint=0;named=false;myMoves=[];tipIx=0;streak=0;lastTo=-1;
+  ST={same:0,edge:0,lost:0,lostSolo:0,queenEarly:0,kingWalk:0,fpawn:0,captures:0,castled:false,mateMissed:0};
+  hush();$('modal').innerHTML='';$('menu').classList.add('hidden');$('game').classList.remove('hidden');window.scrollTo(0,0);
+  $('vs').innerHTML=`<span class="re">${R.e}</span> ${R.n}`;$('vbtn').textContent=D.voice?'🔊':'🔇';
+  setStars();render();updGoals();
+  const pre=helloText?helloText+' ':'';helloText='';quiz=null;tick();
+  if(myW)say(`${pre}Juegas contra ${R.n}. Te tocan las blancas, así que empiezas tú. ¡Mucha suerte!`,'😊 ♔');
+  else{say(`${pre}Juegas contra ${R.n}. Te tocan las negras, así que empieza ${R.n}. ¡Mucha suerte!`,'😊 ♚');busy=true;window._t1=setTimeout(botMove,pre?9000:3000);}}
+function playMove(m){if(gameOver)return;
+  const prev=S;const missed=mateIn1(prev);
+  dangerSq=-1;myCount++;myMoves.push(uci(m));const c=coach(m,prev);const dz=dangerSq;
+  if(m.castle){castled=true;ST.castled=true;}if(m.cap)ST.captures++;
+  streak=(m.f===lastTo&&!m.castle)?streak+1:1;lastTo=m.t;const longStreak=streak===3;if(longStreak)ST.same++;
+  landed.delete(m.f);landed.add(m.t);if(m.castle)landed.add(ROOK[m.castle][1]);
+  if(c.good){stars++;setStars();starFly();sndGood();}
+  doMove(m,()=>{if(missed&&!(inCheck(S)&&!legal(S).length))ST.mateMissed++;
+    const g=updGoals();let wait=800;
+    if(checkEnd())return;
+    sinceTalk++;recent.push(!!c.bad);if(recent.length>5)recent.shift();
+    dangerSq=dz;if(whyCool>0)whyCool--;
+    if(c.bad&&c.k&&WHY[c.k]&&whyCool===0){render(m.t);whyCool=3;recent=[];askWhy(c.k,m,c.v);return;}
+    if(!goalDone&&g.center&&g.kn===2&&g.bi>=1&&g.castle){goalDone=true;confetti();teach(`¡Salida perfecta, ${NM()}!`+' Tienes el centro, las piezas fuera y el rey guardado.','🏆','happy');wait=2500;}
+    else if(m.castle){teach(c.v,'🏰','happy');wait=1800;}
+    else if(longStreak){render(m.t);teach('Cariño, estás moviendo mucho la misma pieza. Las otras también quieren jugar. ¡Sácalas!','🔁');wait=2600;}
+    else if(c.bad&&recent.filter(Boolean).length>=3){
+      let v=c.v;const sg=bestFor(prev,moves.length-1,m);
+      if(sg){hintSq=[sg.t];if(S.b[sg.f]&&isW(S.b[sg.f])===myW)hintSq.push(sg.f);v+=` La próxima vez, prueba el ${NAME[prev.b[sg.f].toLowerCase()]} en la casilla verde.`;}
+      render(m.t);teach(v,'🤔 🟩');recent=[];wait=4500;}
+    else{const on=openingName();if(on){teach(on,'🌟','happy');wait=2500;}else{render(m.t);quiet(c.s||'🙂');}}
+    busy=true;window._t1=setTimeout(botMove,wait);});}
+function botPick(){const R=RIVALS[rival],Lm=legal(S),key=moves.join(' ');
+  if(R.book){const cands=BOOK.filter(l=>l.length>moves.length&&l.slice(0,moves.length).join(' ')===key).map(l=>l[moves.length]);
+    if(cands.length){const u=cands[Math.random()*cands.length|0];const m=Lm.find(x=>uci(x)===u);if(m)return m;}}
+  let best=Lm[0],bs=-1e9;
+  for(const m of Lm){let sc=scoreMove(S,m,moves.length,R.hw)+Math.random()*R.noise;
+    if(R.safe&&sc<900&&mateIn1(make(S,m)))sc-=500;
+    if(sc>bs){bs=sc;best=m;}}
+  return best;}
+function botMove(){if(mode!=='play'||gameOver||S.w===myW)return;busy=true;const prev=S;const m=botPick();
+  if(m.cap){ST.lost++;if(!attacked(prev.b,m.t,myW))ST.lostSolo++;}
+  doMove(m,()=>{if(checkEnd())return;
+    const h=hanging(S.b,myW);if(h.v>=2&&h.sq>=0)dangerSq=h.sq;
+    if(inCheck(S)){render(m.t);teach('¡Jaque! Protege a tu rey.','⚠️ ¡Jaque!');return;}
+    const mt=enemyMateThreat();
+    if(mt){dangerSq=mt.t;render(m.t);let v='¡Cuidado, cariño! El enemigo quiere hacerte jaque mate justo donde brilla en rojo. Tápalo o defiéndelo.';
+      if(myCount<=6)v+=' Es una trampa muy famosa, ¡que no te pille!';teach(v,'⚠️');return;}
+    const mm=mateIn1(S);
+    if(mm){if(mateHint===0){mateHint=1;render(m.t);teach('¡Mira! Puedes ganar ahora mismo con un jaque mate. ¿Lo encuentras?','🔎');}
+      else{hintSq=[mm.f];render(m.t);teach('Te ayudo un poquito: la pieza que brilla en verde puede dar jaque mate.','🟩');}
+      return;}
+    render(m.t);
+    if(sinceTalk>=nextTalk){if(!askQuiz())teach(remind(),'💡');return;}
+    quiet(m.cap?'😮':'😊');});}
+
+/* ---- final de partida y resumen de Capi ---- */
+function onlyKings(){return S.b.every(p=>!p||p.toLowerCase()==='k');}
+function checkEnd(){const Lm=legal(S);let res=null;
+  if(!Lm.length)res=inCheck(S)?(S.w!==myW?'win':'loss'):'draw';
+  else if(onlyKings()||moves.length>=200)res='draw';
+  if(!res)return false;
+  gameOver=true;finishGame(res);return true;}
+function finishGame(res){const R=RIVALS[rival];
+  D=load();let unlock='';
+  D.games.unshift(Object.assign({d:Date.now(),r:rival,w:myW,res,n:myCount},ST));D.games=D.games.slice(0,200);
+  if(res==='win'){D.wins[rival]=(D.wins[rival]||0)+1;
+    if(rival===D.level&&D.wins[rival]>=WINS_NEEDED){
+      if(rival<RIVALS.length-1){D.level++;unlock=RIVALS[D.level];}else D.champ=true;}}
+  store(D);
+  if(sess){sess.games++;if(res==='win')sess.wins++;const I=sess.issues;const add=k=>I[k]=(I[k]||0)+1;
+    if(ST.same)add('same');if(ST.lostSolo)add('lostSolo');if(ST.edge>=2)add('edge');if(ST.queenEarly)add('queenEarly');if(!ST.castled&&myCount>=10)add('noCastle');if(ST.mateMissed)add('mateMissed');
+    if(sessLeft()===0){if(res==='win'){sndWin();}endSession(res==='win'?`¡Le has ganado a ${R.n}!`:res==='loss'?`Esta vez ha ganado ${R.n}, pero has jugado muy bien.`:'¡Empate!');return;}}
+  const good=[],iss=[];
+  if(res==='win')good.push(['🏆','¡Has ganado!']);
+  if(ST.castled)good.push(['🏰','Has hecho el enroque.']);
+  if(ST.captures>=3)good.push(['😋','Has comido muchas piezas.']);
+  if(!ST.same&&myCount>=8)good.push(['🌈','Has movido muchas piezas distintas.']);
+  if(ST.same)iss.push(['🔁','Has movido mucho la misma pieza. La próxima vez, saca también las otras.']);
+  if(ST.lostSolo)iss.push(['🛡️','Te comieron piezas que estaban solitas. Antes de mover, mira si tu pieza está protegida.']);
+  if(ST.mateMissed)iss.push(['🔎','Tuviste un jaque mate y no lo viste. Busca siempre los jaques.']);
+  if(ST.edge>=2)iss.push(['↔️','Has jugado mucho por los lados. Las piezas son más fuertes en el medio.']);
+  if(ST.queenEarly)iss.push(['👸','Sacaste la dama muy pronto. Primero caballos y alfiles.']);
+  if(ST.fpawn)iss.push(['🛡️','Moviste los peones que cuidan al rey. Déjalos quietos al principio.']);
+  if(!ST.castled&&myCount>=10)iss.push(['🏰','Te faltó el enroque para guardar al rey.']);
+  const top=iss.slice(0,2);
+  let v=res==='win'?`¡Muy bien, ${NM()}! Le has ganado a ${R.n}.`:res==='loss'?`Muy bien jugado, cariño. Esta vez ha ganado ${R.n}, pero perder también enseña.`:'¡Empate! Nadie gana esta vez.';
+  if(good.length)v+=' '+good.filter(g=>g[0]!=='🏆').slice(0,2).map(g=>g[1]).join(' ');
+  if(top.length)v+=' Mira, para la próxima: '+top.map(x=>x[1]).join(' ');
+  if(unlock)v+=` ¡Y has pasado de nivel! Ahora te espera ${unlock.n}.`;
+  if(D.champ&&rival===RIVALS.length-1&&res==='win')v+=` ¡Has ganado el torneo, ${NM()}!`;
+  v+=' ¡Cada día juegas mejor!';
+  if(res==='win'){confetti();sndWin();}
+  hush();setTimeout(()=>speak(v),300);
+  const head=res==='win'?'🏆':res==='loss'?'🧡':'🤝';
+  const w=Math.min(D.wins[rival],WINS_NEEDED);
+  setTimeout(()=>{$('modal').innerHTML=`<div class="modal"><div class="box">
+    <div class="big">${head} ${R.e}</div>
+    <div style="font-size:26px;margin:2px 0">${'🥇'.repeat(w)}${'⚪'.repeat(WINS_NEEDED-w)}</div>
+    <div class="sumlist">${good.slice(0,3).map(g=>`<div>✅ ${g[0]}</div>`).join('')}${top.map(x=>`<div>🔸 ${x[0]}</div>`).join('')}</div>
+    ${unlock?`<div class="champ">🔓 ${unlock.e}</div>`:''}
+    <button class="btn green" style="font-size:26px" onclick="startGame(${unlock?D.level:rival})">🎮</button>
+    <button class="btn ghost" style="font-size:24px" onclick="toMenu()">🏆</button></div></div>`;},1200);}
+
+/* ================= PANEL DEL PAPÁ (oculto) ================= */
+let pinBuf='',pinStage='';
+function openPin(){D=load();pinBuf='';pinStage=D.pin?'enter':'new';drawPin();}
+function drawPin(msg){const t=pinStage==='enter'?'Código del papá':pinStage==='new'?'Crea un código de 4 números':'Repite el código';
+  $('modal').innerHTML=`<div class="modal"><div class="box pinbox"><h2>🔒</h2><p>${msg||t}</p><div class="dots">${'●'.repeat(pinBuf.length)}${'○'.repeat(4-pinBuf.length)}</div>
+   <div class="keys">${[1,2,3,4,5,6,7,8,9].map(n=>`<button onclick="pinKey('${n}')">${n}</button>`).join('')}<button onclick="$('modal').innerHTML=''">✖</button><button onclick="pinKey('0')">0</button><button onclick="pinBuf=pinBuf.slice(0,-1);drawPin()">⌫</button></div></div></div>`;}
+let pinFirst='';
+function pinKey(k){if(pinBuf.length>=4)return;pinBuf+=k;drawPin();if(pinBuf.length<4)return;
+  setTimeout(()=>{if(pinStage==='enter'){if(pinBuf===D.pin){$('modal').innerHTML='';openPanel();}else{pinBuf='';drawPin('Código incorrecto');}}
+    else if(pinStage==='new'){pinFirst=pinBuf;pinBuf='';pinStage='repeat';drawPin();}
+    else{if(pinBuf===pinFirst){D=load();D.pin=pinBuf;store(D);$('modal').innerHTML='';openPanel();}else{pinBuf='';pinStage='new';drawPin('No coincide, vuelve a crearlo');}}},200);}
+const ISSUES=[['same','🔁 Mueve mucho la misma pieza'],['lostSolo','🛡️ Le comen piezas sin proteger'],['edge','↔️ Juega por los lados',2],
+  ['queenEarly','👸 Saca la dama pronto'],['fpawn','👑 Mueve los peones del rey'],['noCastle','🏰 No enroca'],['mateMissed','🔎 No ve el jaque mate']];
+function has(g,k,min){if(k==='noCastle')return !g.castled&&g.n>=10;return (g[k]||0)>=(min||1);}
+function fmtDate(t){const d=new Date(t);return d.toLocaleDateString('es-ES',{day:'2-digit',month:'2-digit'})+' '+d.toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'});}
+function report(){const G=D.games,last=G.slice(0,10);const W=G.filter(g=>g.res==='win').length,L=G.filter(g=>g.res==='loss').length;
+  let t=`Informe de ajedrez con Capi – ${NM()} (${new Date().toLocaleDateString('es-ES')})\nPartidas: ${G.length} · Ganadas: ${W} · Perdidas: ${L} · Empates: ${G.length-W-L}\nNivel del campeonato: ${RIVALS[D.level].n}${D.champ?' (¡campeona!)':''}\nVictorias por rival: ${RIVALS.map((r,i)=>r.n+' '+(D.wins[i]||0)).join(', ')}\n\nEn las últimas ${last.length} partidas:\n`;
+  for(const[k,l,m]of ISSUES)t+=`- ${l.slice(3)}: ${last.filter(g=>has(g,k,m)).length} de ${last.length}\n`;
+  if(D.whyLog&&D.whyLog.length){const L=D.whyLog.slice(0,20),cnt={};L.forEach(x=>{const k=x.k+' → '+x.a;cnt[k]=(cnt[k]||0)+1;});t+='\nRespuestas a "¿por qué?" (últimas '+L.length+'):\n'+Object.entries(cnt).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`- ${k}: ${v}`).join('\n')+'\n';}
+  t+='\nEntrenamientos:\n'+D.sessions.slice(0,10).map(x=>`- ${fmtDate(x.d)} · ánimo: ${x.mood} · ${x.mins} min · ${x.games} partidas · ${x.wins} ganadas`).join('\n')+'\n';
+  t+='\nÚltimas partidas:\n'+last.map(g=>`- ${fmtDate(g.d)} · ${RIVALS[g.r].n} · ${g.w?'blancas':'negras'} · ${g.res==='win'?'ganó':g.res==='loss'?'perdió':'empate'} · ${g.n} jugadas · enroque: ${g.castled?'sí':'no'} · misma pieza: ${g.same} · piezas perdidas sin proteger: ${g.lostSolo} · por los lados: ${g.edge} · dama pronto: ${g.queenEarly} · mates no vistos: ${g.mateMissed}`).join('\n');
+  return t;}
+function openPanel(){D=load();const G=D.games,last=G.slice(0,10);
+  const W=G.filter(g=>g.res==='win').length,L=G.filter(g=>g.res==='loss').length;
+  const bars=ISSUES.map(([k,l,m])=>{const c=last.filter(g=>has(g,k,m)).length,p=last.length?Math.round(c/last.length*100):0;
+    return `<div class="bar"><div class="lb">${l}</div><div class="tr"><div class="fi" style="width:${p}%"></div></div><div class="vl">${c}/${last.length}</div></div>`;}).join('');
+  const rows=G.slice(0,30).map(g=>{const f=ISSUES.filter(([k,,m])=>has(g,k,m)).map(x=>x[1].slice(0,2)).join(' ');
+    return `<tr><td>${fmtDate(g.d)}</td><td>${RIVALS[g.r].e}</td><td>${g.w?'♔':'♚'}</td><td>${g.res==='win'?'🏆 Ganó':g.res==='loss'?'Perdió':'Empate'}</td><td>${g.n}</td><td>${f||'✅'}</td></tr>`;}).join('');
+  const seg=(vals,cur,fn,lab)=>`<div class="seg">${vals.map((v,i)=>`<button class="${v===cur?'on':''}" onclick="${fn}(${JSON.stringify(v)})">${lab?lab[i]:v}</button>`).join('')}</div>`;
+  $('panel').innerHTML=`<div class="panel"><div class="in">
+   <div class="top"><h2 style="flex:1">👨 Panel del papá</h2><button class="btn ghost" onclick="closePanel()">✖ Cerrar</button></div>
+   <div class="kpis"><div class="kpi"><b>${G.length}</b>partidas</div><div class="kpi"><b>${W}</b>ganadas</div><div class="kpi"><b>${L}</b>perdidas</div><div class="kpi"><b>${RIVALS[D.level].e}</b>nivel</div></div>
+   <h3>Lo que más le cuesta (últimas ${last.length} partidas)</h3><div class="pcard">${last.length?bars:'Todavía no ha jugado ninguna partida.'}</div>
+   <h3>Entrenamientos</h3><div class="pcard" style="padding:0;overflow:auto"><table class="gm"><tr><th>Fecha</th><th>Ánimo</th><th>Min.</th><th>Partidas</th><th>Ganadas</th></tr>${D.sessions.slice(0,15).map(x=>`<tr><td>${fmtDate(x.d)}</td><td>${{bien:'😀',normal:'😐',cansada:'😴'}[x.mood]||''}</td><td>${x.mins}</td><td>${x.games}</td><td>${x.wins}</td></tr>`).join('')||'<tr><td colspan=5>Sin entrenamientos todavía</td></tr>'}</table></div>
+   <h3>Últimas partidas</h3><div class="pcard" style="padding:0;overflow:auto"><table class="gm"><tr><th>Fecha</th><th>Rival</th><th>Color</th><th>Resultado</th><th>Jug.</th><th>Fallos</th></tr>${rows||'<tr><td colspan=6>Sin partidas</td></tr>'}</table></div>
+   <h3>Ajustes</h3><div class="pcard">
+     <p style="margin:0 0 6px">Capi le recuerda cosas cada…</p>${seg([3,4,5,6,8],D.talk,'setTalk',['3','4','5','6','8 jugadas'])}
+     <p style="margin:12px 0 6px">Voz de Capi</p>${seg([true,false],D.voice,'setVoice',['🔊 Sí','🔇 No'])}
+     <p style="margin:12px 0 6px">Nivel del campeonato (hasta qué rival puede jugar)</p>${seg([0,1,2,3,4],D.level,'setLevel',RIVALS.map(r=>r.e))}
+     <p style="margin:12px 0 6px">Minutos de entrenamiento</p>${seg([10,15,20,30],D.mins,'setMins',['10','15','20','30 min'])}
+     <p style="margin:12px 0 6px">Nombre de la niña</p><div class="seg"><input id="nmIn" value="${NM()}" style="font-family:inherit;font-size:16px;padding:7px 10px;border-radius:12px;border:2px solid #e2d4ee;flex:1"><button onclick="saveName()">Guardar</button></div>
+     <p style="margin:12px 0 6px">Código del papá</p><div class="seg"><button onclick="resetPin()">Cambiar código</button><button onclick="resetAll()">🗑️ Borrar todo el historial</button></div>
+   </div>
+   <h3>Informe para Claude</h3><div class="pcard"><p style="margin:0 0 6px">Cópialo y pégamelo en el chat para que ajuste el juego.</p>
+     <textarea class="rep" id="rep" readonly>${report()}</textarea>
+     <button class="btn" style="margin-top:8px" onclick="copyRep(this)">📋 Copiar informe</button></div>
+  </div></div>`;}
+function closePanel(){$('panel').innerHTML='';buildMenu();}
+function setTalk(v){D=load();D.talk=v;store(D);openPanel();}
+function setVoice(v){D=load();D.voice=v;store(D);if(!v)hush();openPanel();}
+function setLevel(v){D=load();D.level=v;store(D);openPanel();}
+function resetPin(){D=load();delete D.pin;store(D);closePanel();openPin();}
+let delAsk=0;function resetAll(){if(Date.now()-delAsk>4000){delAsk=Date.now();const b=event.target;b.textContent='¿Seguro? Pulsa otra vez';return;}
+  D=load();const pin=D.pin;try{localStorage.removeItem(KEY)}catch(e){}D=load();D.pin=pin;store(D);openPanel();}
+function copyRep(btn){const ta=$('rep');ta.select();
+  const ok=()=>{btn.textContent='✅ Copiado';};
+  try{navigator.clipboard.writeText(ta.value).then(ok,()=>{try{document.execCommand('copy');ok();}catch(e){btn.textContent='Selecciónalo y cópialo a mano';}});}
+  catch(e){try{document.execCommand('copy');ok();}catch(e2){btn.textContent='Selecciónalo y cópialo a mano';}}}
+
+/* acceso secreto: mantener pulsada a Capi en el menú 2 segundos (o tocar el título 5 veces) */
+(function(){const c=$('owlMenu');let t=null;
+  const st=e=>{t=setTimeout(()=>{t=null;openPin();},2000);};const en=()=>{if(t){clearTimeout(t);t=null;}};
+  c.addEventListener('pointerdown',st);['pointerup','pointerleave','pointercancel'].forEach(ev=>c.addEventListener(ev,en));
+  c.addEventListener('contextmenu',e=>e.preventDefault());
+  let taps=0,tt=null;$('ttl').addEventListener('click',()=>{taps++;clearTimeout(tt);tt=setTimeout(()=>taps=0,1500);if(taps>=5){taps=0;openPin();}});})();
+
+
+/* ================= SALUDO Y ENTRENAMIENTO ================= */
+function openHello(i){D=load();hush();
+  $('modal').innerHTML=`<div class="modal"><div class="box"><div class="owl talking" style="margin:0 auto 6px;width:110px">${document.querySelector('.capi').outerHTML}</div>
+   <h2>¡Hola, ${NM()}! 🧡</h2>
+   <div class="row" style="margin-top:8px">
+    <button class="btn green" style="font-size:40px" onclick="helloPick('bien',${i})">😀</button>
+    <button class="btn orange" style="font-size:40px" onclick="helloPick('normal',${i})">😐</button>
+    <button class="btn" style="font-size:40px" onclick="helloPick('cansada',${i})">😴</button></div></div></div>`;
+  speak(`Hola, ${NM()}. ¿Cómo estás hoy? Toca una carita.`);}
+function helloPick(mood,i){hush();
+  const r={bien:'¡Qué bien! Me alegro mucho.',normal:'Vale. Jugando seguro que te pones más contenta.',cansada:'Uy, un poquito cansada... Entonces jugamos con calma, sin prisa.'}[mood];
+  sess={start:Date.now(),mood,games:0,wins:0,issues:{}};
+  helloText=`${r} Hoy vamos a entrenar ${D.mins} minutos juntas. Yo te voy a ir preguntando cosas, y tú me contestas tocando el tablero. ¡Vamos!`;
+  $('modal').innerHTML='';startGame(i);}
+function tick(){const b=$('tfill');if(!b)return;if(!sess){b.style.width='0%';return;}
+  const p=100-sessLeft()/(D.mins*60000)*100;b.style.width=Math.min(100,p)+'%';
+  if(sessLeft()===0&&mode==='play'&&!gameOver&&!sess.warned){sess.warned=true;teach(`${NM()}, ya casi terminamos el entrenamiento. Acabamos esta partida y descansamos.`,'⏰');}}
+setInterval(tick,3000);
+function endSession(resultLine){const s=sess;sess=null;D=load();
+  const mins=Math.round((Date.now()-s.start)/60000);
+  D.sessions.unshift({d:s.start,mood:s.mood,mins,games:s.games,wins:s.wins});D.sessions=D.sessions.slice(0,100);store(D);
+  const tips={same:'Mañana vamos a practicar sacar todas las piezas, no solo una.',lostSolo:'Mañana vamos a practicar mirar si nuestras piezas están protegidas.',edge:'Mañana vamos a practicar jugar por el medio.',queenEarly:'Mañana vamos a practicar dejar la dama en casa al principio.',noCastle:'Mañana vamos a practicar el enroque.',mateMissed:'Mañana vamos a practicar buscar jaques.'};
+  const top=Object.entries(s.issues).sort((a,b)=>b[1]-a[1])[0];
+  let v=`${resultLine} ¡Ya hemos entrenado ${D.mins} minutos, ${NM()}! Hoy has jugado ${s.games} ${s.games===1?'partida':'partidas'}${s.wins?` y has ganado ${s.wins}`:''}. ${top?tips[top[0]]:''} Estoy muy orgullosa de ti. ¡Hasta mañana!`;
+  hush();setTimeout(()=>speak(v),300);confetti();
+  setTimeout(()=>{$('modal').innerHTML=`<div class="modal"><div class="box"><div class="big">🌙 🧡</div><h2>¡Hasta mañana, ${NM()}!</h2>
+    <div style="font-size:30px;margin:6px 0">🎮 ${s.games} &nbsp; 🏆 ${s.wins} &nbsp; ⭐ ${stars}</div>
+    <button class="btn ghost" style="font-size:26px" onclick="toMenu()">🏠</button></div></div>`;},1200);}
+
+
+/* ---- Capi pregunta "¿por qué?" y ella contesta tocando ---- */
+const WHY={
+ solo:{q:p=>`¿Por qué has puesto el ${p} ahí?`,a:[
+   ['⚔️','Para atacar','¡Qué valiente! Atacar está muy bien, cariño. Pero antes de mover hay que mirar si el enemigo se la puede comer.','ataque'],
+   ['🛡️','Creía que estaba protegida','Casi, casi. Vamos a mirarlo juntas: ninguna pieza tuya la cuida, por eso brilla en rojo.','creia'],
+   ['👀','No lo vi','No pasa nada, ¡para eso estamos entrenando! Un truco: antes de mover, pregúntate "¿me la pueden comer?".','novi']]},
+ dama:{q:()=>'¿Por qué has sacado la dama tan pronto?',a:[
+   ['⚔️','Para atacar','¡Me encanta que quieras atacar! Pero la dama sola no gana. Si los caballos y alfiles salen antes, atacan todos juntos.','ataque'],
+   ['💪','Porque es la más fuerte','¡Sí que es la más fuerte! Por eso el enemigo la persigue y pierdes tiempo huyendo. Mejor guardarla un poquito.','fuerte'],
+   ['🤷','No sé','No pasa nada. Te cuento un secreto de campeones: la dama sale después de los caballos y los alfiles.','nose']]},
+ rey:{q:()=>'¿Por qué has movido el rey?',a:[
+   ['🚶','Para que pasee','Jaja, ¡qué gracioso! Pero el rey no puede pasear: si sale de casa, el enemigo lo caza. Mejor guardarlo en su castillo.','pasea'],
+   ['🛡️','Para protegerlo','¡Bien pensado querer protegerlo! La mejor forma es el enroque: el rey se va a su castillo de un salto.','proteger'],
+   ['🤷','No sé','No pasa nada. Recuerda: el rey se queda en casa hasta que hacemos el enroque.','nose']]},
+ torre:{q:()=>'¿Por qué has movido la torre tan pronto?',a:[
+   ['⚔️','Para atacar','¡Me gusta que ataques! Pero la torre necesita caminos abiertos, y al principio está todo lleno de peones.','ataque'],
+   ['🏰','Para hacer el enroque','¡Ay, casi! Para enrocar se mueve el rey dos pasitos, no la torre. Si mueves la torre antes, ya no puedes enrocar por ese lado.','enroque'],
+   ['🤷','No sé','No pasa nada. Las torres son las últimas en salir, cuando el rey ya está en su castillo.','nose']]},
+ repite:{q:()=>'¿Por qué has movido otra vez la misma pieza?',a:[
+   ['⚔️','Para atacar','¡Bien, quieres atacar! Pero si las otras piezas siguen en casa, atacas tú solita. Sácalas para que te ayuden.','ataque'],
+   ['😟','Estaba en peligro','¡Muy bien visto que estaba en peligro! Huir así está bien. Ahora intenta sacar las demás piezas.','peligro'],
+   ['🤷','No sé','No pasa nada. Al principio, cada pieza se mueve una vez, y luego le toca a otra.','nose']]},
+ peonrey:{q:()=>'¿Por qué has movido ese peón?',a:[
+   ['🚪','Para abrir camino','Es verdad que abre camino, pero ese peón cuida al rey como una puerta. Si lo mueves, el enemigo puede entrar.','camino'],
+   ['🎲','Por moverlo','Vale, pero mejor mueve con un plan. Los peones del medio son los buenos para empezar.','azar'],
+   ['🤷','No sé','No pasa nada. Los peones de al lado del rey son su escudo: se quedan quietos al principio.','nose']]},
+ orilla:{q:()=>'¿Por qué has movido el peón de la orilla?',a:[
+   ['🚪','Para sacar la torre','¡Qué buena idea, pensar en la torre! Pero eso es para más tarde. Ahora toca el centro.','torre'],
+   ['🎲','Por moverlo','Vale. Pero los peones del medio son los que mandan. Mueve esos primero.','azar'],
+   ['🤷','No sé','No pasa nada. Recuerda la regla de oro número 1: ¡al centro!','nose']]},
+ caballo:{q:()=>'¿Por qué has puesto el caballo en la orilla?',a:[
+   ['⚔️','Para atacar','¡Me gusta que ataques! Pero desde la orilla el caballo llega a muy pocas casillas. Desde el medio llega a muchas más.','ataque'],
+   ['🛡️','Para que esté a salvo','Bien pensado, quieres cuidarlo. Pero en la orilla no ayuda. Un caballo en el medio también está seguro y ayuda mucho más.','salvo'],
+   ['🤷','No sé','No pasa nada. Hay un dicho: caballo en la orilla, caballo que no brilla.','nose']]}
+};
+function askWhy(k,m,expl){const W0=WHY[k];const pz=NAME[(m.promo||m.p).toLowerCase()];why={k,expl};busy=true;
+  const q=W0.q(pz);const ops=W0.a.map((o,i)=>`<button class="btn ${['orange','green',''][i]}" style="font-size:21px;text-align:left;display:flex;gap:10px;align-items:center" onclick="whyPick(${i})"><span style="font-size:32px">${o[0]}</span>${o[1]}</button>`).join('');
+  $('modal').innerHTML=`<div class="modal" style="align-items:end"><div class="box"><div class="owl talking" style="margin:0 auto 4px;width:90px">${document.querySelector('.capi').outerHTML}</div>
+   <h2 style="font-size:22px">${q}</h2>${ops}
+   <button class="btn ghost" style="font-size:18px" onclick="whyRead()">🔊 Léemelo otra vez</button></div></div>`;
+  hush();setTimeout(()=>speak(`${NM()}, una pregunta. ${q} ¿${W0.a[0][1]}? ¿${W0.a[1][1]}? ¿O ${W0.a[2][1].toLowerCase()}? Toca tu respuesta.`),250);}
+function whyRead(){const W0=WHY[why.k];hush();speak(W0.a.map((o,i)=>`${['Naranja','Verde','Morado'][i]}: ${o[1]}.`).join(' '));}
+function whyPick(i){const W0=WHY[why.k],o=W0.a[i],x=why;why=null;$('modal').innerHTML='';
+  if(sess){sess.why=sess.why||{};}D=load();D.whyLog=D.whyLog||[];D.whyLog.unshift({d:Date.now(),k:x.k,a:o[3]});D.whyLog=D.whyLog.slice(0,60);store(D);
+  stars++;setStars();starFly();sndGood();
+  teach(`${o[2]} Gracias por contármelo.`,'💬 '+o[0],'happy');
+  busy=true;window._t1=setTimeout(botMove,Math.min(9000,2200+o[2].length*55));}
+
+/* ---- preguntas de Capi (ella contesta tocando el tablero) ---- */
+function askQuiz(){const n=myCount,Lm=legal(S);
+  const targets=[];for(let i=0;i<64;i++){const p=S.b[i];if(p&&isW(p)===myW&&p.toLowerCase()!=='k'){const a=minAtt(S.b,i,!myW);
+    if(a!==null){const v=VAL[p.toLowerCase()];const loss=attacked(S.b,i,myW)?(a<v?v-a:0):v;if(loss>=2)targets.push(i);}}}
+  if(targets.length){dangerSq=-1;render(lastMv&&lastMv.t);
+    quiz={targets,tries:0,kind:'danger',ok:'¡Muy bien visto! Esa está en peligro. Ahora ponla a salvo o protégela.',hint:'Casi... Mira otra vez. ¿Cuál se puede comer el enemigo?',show:'Es esta, la que brilla en rojo. ¡Ponla a salvo!'};
+    teach(`${NM()}, una pregunta: ¿cuál de tus piezas está en peligro? Tócala.`,'❓');return true;}
+  const free=[...new Set(Lm.filter(m=>m.cap&&VAL[m.cap.toLowerCase()]>=3&&!risky(S,m)&&hanging(make(S,m).b,myW).v<VAL[m.cap.toLowerCase()]).map(m=>m.t))];
+  if(free.length){quiz={targets:free,tries:0,kind:'free',ok:'¡Sí! Esa pieza está solita. ¡Cómetela!',hint:'Casi... busca una pieza del enemigo que nadie protege.',show:'Es esta, la que brilla en verde. ¡Te la puedes comer!'};
+    teach('Una pregunta: ¿ves alguna pieza del enemigo que esté solita? Tócala.','❓');return true;}
+  if(n<10){const hr=myW?7:0,t=[];for(let c=0;c<8;c++){const i=hr*8+c,p=S.b[i];if(p&&isW(p)===myW&&'nb'.includes(p.toLowerCase())&&Lm.some(m=>m.f===i))t.push(i);}
+    if(t.length){quiz={targets:t,tries:0,kind:'dev',ok:'¡Eso es! Ahora llévalo hacia el medio.',hint:'Busca un caballo o un alfil que siga en casa, en la última fila.',show:'Por ejemplo esta, la que brilla en verde.'};
+      teach('Una pregunta: ¿qué pieza vas a sacar ahora? Toca un caballo o un alfil que siga en casa.','❓');return true;}}
+  return false;}
+function answerQuiz(s){const q=quiz;
+  if(q.targets.includes(s)){quiz=null;stars++;setStars();starFly();sndGood();
+    if(q.kind==='free'){hintSq=[s];render();}else{if(q.kind==='danger')dangerSq=s;sel=s;render();}
+    say(q.ok,'✅','happy');return;}
+  q.tries++;
+  if(q.tries>=2){quiz=null;const t=q.targets[0];if(q.kind==='danger')dangerSq=t;else hintSq=[t];render();say(q.show,'👉');}
+  else say(q.hint,'🤔');}
+
+/* ---- ajustes extra del panel ---- */
+function setMins(v){D=load();D.mins=v;store(D);openPanel();}
+function saveName(){const v=($('nmIn').value||'').trim();if(!v)return;D=load();D.name=v;store(D);openPanel();}
+
+buildMenu();
+
+</script>
+</body>
+</html>

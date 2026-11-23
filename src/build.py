@@ -123,5 +123,5 @@ sm = '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps
 sm += "".join(f"  <url><loc>{u}</loc><lastmod>{d}</lastmod></url>\n" for u, d in urls)
 sm += "</urlset>\n"
 (web / "sitemap.xml").write_text(sm, encoding="utf-8")
-(web / "robots.txt").write_text(f"User-agent: *\nAllow: /\n\nSitemap: {SITE}/sitemap.xml\n", encoding="utf-8")
+(web / "robots.txt").write_text(f"User-agent: *\nAllow: /\nDisallow: /capi/\n\nSitemap: {SITE}/sitemap.xml\n", encoding="utf-8")
 print("Consejos:", [a["slug"] for a in articles])

@@ -1,4 +1,5 @@
 User-agent: *
 Allow: /
+Disallow: /capi/
 
 Sitemap: https://osmar-rotela-electricista.netlify.app/sitemap.xml
